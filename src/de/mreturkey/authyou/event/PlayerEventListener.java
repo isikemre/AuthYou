@@ -6,6 +6,9 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import de.mreturkey.authyou.AuthPlayer;
+import de.mreturkey.authyou.AuthYou;
+
 public class PlayerEventListener implements Listener {
 
 	public void onPreLoignAsync(AsyncPlayerPreLoginEvent e){
@@ -14,6 +17,10 @@ public class PlayerEventListener implements Listener {
 	
 	public void onPlayerLogin(PlayerJoinEvent e) {
 		e.getPlayer().setGameMode(GameMode.SPECTATOR);
+		AuthPlayer authPlayer = AuthYou.getAuthManager().authenticatePlayer(e.getPlayer());
+		if(authPlayer != null) {
+			
+		}
 	}
 	
 	public void onPlayerMove(PlayerMoveEvent e) {
