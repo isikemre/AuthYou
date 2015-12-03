@@ -14,7 +14,7 @@ public class SessionManager {
 		this.sessionIdentifierGenerator = new SessionIdentifierGenerator();
 	}
 	
-	public Session generateNewSession(){
+	public Session generateNewSession() {
 		String randomId = generateRandomSessionId();
 		while(SESSIONS.containsKey(randomId)) {
 			randomId = generateRandomSessionId();
@@ -24,7 +24,7 @@ public class SessionManager {
 		return session;
 	}
 	
-	public String generateRandomSessionId(){
+	protected String generateRandomSessionId() {
 		return sessionIdentifierGenerator.nextSessionId();
 	}
 
@@ -32,7 +32,15 @@ public class SessionManager {
 		return SESSIONS;
 	}
 	
-	public Session getSession(String sessionId){
+	public boolean existSession(String sessionId) {
+		return SESSIONS.containsKey(sessionId);
+	}
+	
+	public boolean existSession(Session session) {
+		return SESSIONS.containsValue(session);
+	}
+	
+	public Session getSession(String sessionId) {
 		return SESSIONS.get(sessionId);
 	}
 	
@@ -44,6 +52,17 @@ public class SessionManager {
 		return sessionIdentifierGenerator;
 	}
 	
+	public Session querySession(String query) {
+		return null;
+	}
+	
+	public boolean uploadSessionToSQL(Session session) {
+		return false;
+	}
+	
+	protected void removeSession(String sessionId) {
+		SESSIONS.remove(sessionId);
+	}
 }
 
 final class SessionIdentifierGenerator {
