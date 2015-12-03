@@ -1,13 +1,18 @@
 package de.mreturkey.authyou.security;
 
+import java.security.NoSuchAlgorithmException;
+
 import de.mreturkey.authyou.util.HashUtils;
 
 public class Password {
 
+	private final String username;
 	private final String password;
+	private String salt;
 	private String hash;
 	
-	public Password(String password) {
+	public Password(String username, String password) {
+		this.username = username;
 		this.password = password;
 	}
 	
@@ -15,8 +20,21 @@ public class Password {
 		return password;
 	}
 	
-	public String getHash() {
-		if(hash == null) hash = HashUtils.getSha256(password);
+	public String getSalt() throws NoSuchAlgorithmException {
+		return salt == null ? HashUtils.createSalt(16) : salt;
+	}
+	
+	public String getUsername() {
+		return username;
+	}
+	
+	public String generateHash() {
+		if(hash == null)
+			try {
+				hash = HashUtils.getHash(password, getSalt(), username);
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
 		return hash;
 	}
 	
