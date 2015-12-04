@@ -4,6 +4,8 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
+import de.mreturkey.authyou.AuthPlayer;
+
 public class SessionManager {
 
 	private static final HashMap<String, Session> SESSIONS = new HashMap<>();
@@ -15,11 +17,15 @@ public class SessionManager {
 	}
 	
 	public Session generateNewSession() {
+		return generateNewSession(null);
+	}
+	
+	public Session generateNewSession(AuthPlayer authPlayer) {
 		String randomId = generateRandomSessionId();
 		while(SESSIONS.containsKey(randomId)) {
 			randomId = generateRandomSessionId();
 		}
-		Session session = new Session(randomId);
+		Session session = new Session(randomId, authPlayer);
 		this.putSession(randomId, session);
 		return session;
 	}

@@ -2,23 +2,45 @@ package de.mreturkey.authyou;
 
 import java.net.InetAddress;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import de.mreturkey.authyou.security.Password;
 import de.mreturkey.authyou.security.session.Session;
-import de.mreturkey.authyou.security.session.SessionDestroyReason;
 import de.mreturkey.authyou.util.KickReason;
 import de.mreturkey.authyou.util.MySQL;
+import de.mreturkey.authyou.util.QueryThreadAuthPlayer;
+import de.mreturkey.authyou.util.SQLQueryType;
 
 public class AuthManager {
 	
 	private static final HashMap<UUID, AuthPlayer> AUTH_PLAYERS = new HashMap<>();
 	
-	protected AuthManager() {
-		
+	protected AuthManager() {}
+	
+	/**
+	 * Checks the PreLoginEvent.<br>
+	 * Returns true if all data is valid. false if not
+	 * @param uuid
+	 * @param ip
+	 * @return
+	 */
+	public boolean preValidAuthentication(UUID uuid, InetAddress ip) {
+		AuthPlayer authPlayer = getAuthPlayer(uuid);
+		if(authPlayer != null) {
+			Session session = authPlayer.getSession();
+			if(session.isDestroyed()) return true;
+			if(!session.getIP().equals(ip)) {
+				authPlayer.logout();
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	/**
@@ -36,11 +58,13 @@ public class AuthManager {
 		AuthPlayer authPlayer = getAuthPlayer(player);
 		if(authPlayer != null) {
 			Session session = authPlayer.getSession();
-			if(!session.getIP().equals(player.getAddress().getAddress())) kickPlayer(player, authPlayer, KickReason.IP_FALSE);
+			if(!session.isDestroyed()) {
+				if(!session.getIP().equals(player.getAddress().getAddress())) kickPlayer(player, authPlayer, KickReason.IP_FALSE);
+			} else authPlayer.renewSession();
 		} else authPlayer = queryAuthPlayer(player);
 		return authPlayer;
 	}
-	
+
 	/**
 	 * Kicks the player via BungeeCord
 	 * @param p
@@ -48,8 +72,26 @@ public class AuthManager {
 	 * @param kickReason
 	 */
 	public void kickPlayer(Player p, AuthPlayer authPlayer, KickReason kickReason) {
-		authPlayer.getSession().destroy(SessionDestroyReason.DESTROYED);
-		System.out.println("Kick player simulate");
+		new BukkitRunnable() {
+
+			@Override
+			public void run() {
+				p.kickPlayer(kickReason.getReason());
+			}
+		}.runTask(AuthYou.getInstance());
+		if(p == null || !p.isOnline() || authPlayer == null) return;
+		authPlayer.setLoggedIn(false);
+	}
+	
+	public AuthPlayer registerPlayer(Player player, String password) {
+		Password pw = new Password(player.getName(), password);
+		AuthPlayer authPlayer = new AuthPlayer(player, player.getName(), pw, pw.generateHash(), new Date().getTime(),
+				player.getAddress().getAddress(), true);
+		
+		this.insertAuthPlayerToSQL(authPlayer);
+		
+		this.putAuthPlayer(player.getUniqueId(), authPlayer);
+		return authPlayer;
 	}
 	
 	/**
@@ -60,6 +102,40 @@ public class AuthManager {
 	 */
 	public AuthPlayer getAuthPlayer(Player player) {
 		return AUTH_PLAYERS.get(player.getUniqueId());
+	}
+	
+	public AuthPlayer getAuthPlayer(UUID uuid) {
+		return AUTH_PLAYERS.get(uuid);
+	}
+	
+	protected void removeAuthPlayer(AuthPlayer authPlayer) {
+		if(authPlayer.getPlayer() != null) {
+			AUTH_PLAYERS.remove(authPlayer.getPlayer().getUniqueId());
+		}
+	}
+	
+	public boolean isRegistered(Player p) {
+		if(this.getAuthPlayer(p) != null) return true;
+		try {
+			final ResultSet rs = MySQL.query("SELECT * FROM authme WHERE usernamelobby = '"+p.getName()+"';");
+			if(rs.first()) return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	/**
+	 * Puts the AuthPlayer to the <code>AUTH_PLAYERS</code> HashMap
+	 * @param uuid
+	 * @param authPlayer
+	 */
+	private void putAuthPlayer(UUID uuid, AuthPlayer authPlayer) {
+		AUTH_PLAYERS.put(uuid, authPlayer);
+	}
+	
+	private void insertAuthPlayerToSQL(final AuthPlayer ap) {
+		new QueryThreadAuthPlayer(ap, SQLQueryType.INSERT);
 	}
 	
 	/**
@@ -73,28 +149,35 @@ public class AuthManager {
 		try {
 			final ResultSet rs = MySQL.query("SELECT * FROM authme WHERE usernamelobby = '"+p.getName()+"';");
 			if(!rs.first()) return null;
+			
 			final Password password = new Password(p.getName(), rs.getString("password"));
 			final String passwordHash = rs.getString("password");
 			final long lastLogin = rs.getLong("lastloginlobby");
-			final InetAddress ip = InetAddress.getByName(rs.getString("iplobby"));
-			AuthPlayer authPlayer = new AuthPlayer(p.getName(), password, passwordHash, lastLogin, ip);
-			authPlayer.setSession(AuthYou.getSessionManager().generateNewSession());
-			authPlayer.getSession().setIP(p.getAddress().getAddress());
+			final InetAddress lastip = InetAddress.getByName(rs.getString("iplobby"));
+			boolean loggedIn = rs.getBoolean("isLogged");
+			
+			if(loggedIn) {
+				if(!lastip.equals(p.getAddress().getAddress())) {
+					new Thread(new Runnable() {
+						
+						@Override
+						public void run() {
+							MySQL.update("UPDATE authme SET isLogged = 0;");
+						}
+					}).start();
+					loggedIn = false;
+				}
+			}
+			
+			AuthPlayer authPlayer = new AuthPlayer(p, p.getName(), password, passwordHash, lastLogin, p.getAddress().getAddress(), loggedIn);
+			
 			this.putAuthPlayer(p.getUniqueId(), authPlayer);
+			
 			return authPlayer;
 		} catch(Exception e) {
 			e.printStackTrace();
 			return null;
 		}
-	}
-	
-	/**
-	 * Puts the AuthPlayer to the <code>AUTH_PLAYERS</code> HashMap
-	 * @param uuid
-	 * @param authPlayer
-	 */
-	private void putAuthPlayer(UUID uuid, AuthPlayer authPlayer) {
-		AUTH_PLAYERS.put(uuid, authPlayer);
 	}
 	
 }

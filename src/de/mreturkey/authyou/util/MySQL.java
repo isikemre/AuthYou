@@ -66,4 +66,8 @@ public class MySQL {
 
 	}
 	
+	public static int convertBooleanToInteger(boolean bool) {
+		return bool ? 1 : 0;
+	}
+	
 }

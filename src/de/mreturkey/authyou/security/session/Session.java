@@ -5,11 +5,14 @@ import java.util.Date;
 
 import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
+import de.mreturkey.authyou.util.ExpireThread;
 
 public class Session {
 
 	private final String id;
 	private final Date created;
+	
+	private final ExpireThread expireThread;
 
 	private SessionState state;
 	private SessionDestroyReason destroyReason;
@@ -24,6 +27,7 @@ public class Session {
 	}
 	
 	protected Session(final String id, final AuthPlayer authPlayer) {
+		this.expireThread = new ExpireThread(this);
 		this.id = id;
 		this.authPlayer = authPlayer;
 		this.created = new Date();
@@ -58,22 +62,28 @@ public class Session {
 	public InetAddress getIP() {
 		return ip;
 	}
+	
+	public ExpireThread geExpireThread() {
+		return expireThread;
+	}
 
 	public void setState(SessionState state) {
 		this.state = state;
 	}
 
-	public void setAuthPlayer(AuthPlayer authPlayer) {
-		this.authPlayer = authPlayer;
-	}
-
 	public void setIP(InetAddress ip) {
 		this.ip = ip;
+	}
+	
+	public void setAuthPlayer(AuthPlayer authPlayer) {
+		this.authPlayer = authPlayer;
 	}
 
 	public void destroy(SessionDestroyReason destroyReason) {
 		this.destroyed = true;
 		this.destroyReason = destroyReason;
+		this.state = SessionState.DESTROYED;
+		if(this.authPlayer != null) this.authPlayer.setSession(null);
 		AuthYou.getSessionManager().removeSession(id);
 	}
 	

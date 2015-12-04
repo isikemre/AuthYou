@@ -9,3 +9,11 @@ commands:
     aliases: l
     permission: authyou.login
     description: Login to the server
+  register:
+    usage: /register
+    permission: authyou.register
+    description: Register to server
+  logout:
+    usage: /logout
+    permission: authyou.logout
+    description: Logout you from the server
