@@ -1,5 +1,8 @@
 package de.mreturkey.authyou;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,11 +11,11 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import de.mreturkey.authyou.security.Password;
 import de.mreturkey.authyou.security.session.Session;
 import de.mreturkey.authyou.util.KickReason;
+import de.mreturkey.authyou.util.LogUtil;
 import de.mreturkey.authyou.util.MySQL;
 import de.mreturkey.authyou.util.QueryThreadAuthPlayer;
 import de.mreturkey.authyou.util.SQLQueryType;
@@ -72,18 +75,25 @@ public class AuthManager {
 	 * @param kickReason
 	 */
 	public void kickPlayer(Player p, AuthPlayer authPlayer, KickReason kickReason) {
-		new BukkitRunnable() {
-
-			@Override
-			public void run() {
-				p.kickPlayer(kickReason.getReason());
-			}
-		}.runTask(AuthYou.getInstance());
-		if(p == null || !p.isOnline() || authPlayer == null) return;
-		authPlayer.setLoggedIn(false);
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		DataOutputStream out = new DataOutputStream(b);
+		try {
+			out.writeUTF("KickPlayer");
+			out.writeUTF(p.getName());
+			out.writeUTF(kickReason.getReason());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		LogUtil.consoleSenderLog("--- DEBUG --- ["+p.getName()+"] Player kicked with IP ["+p.getAddress().getAddress()+"] at ("
+				+System.currentTimeMillis()+") for "+kickReason.toString()+".");
+		p.sendPluginMessage(AuthYou.getInstance(), "BungeeCord", b.toByteArray());
+		if(authPlayer == null) return;
+		if(authPlayer.isLoggedIn()) authPlayer.setLoggedIn(false);
 	}
 	
 	public AuthPlayer registerPlayer(Player player, String password) {
+		LogUtil.consoleSenderLog("--- DEBUG --- ["+player.getName()+"] Registered with IP ["+player.getAddress().getAddress()+"] at ("
+				+System.currentTimeMillis()+").");
 		Password pw = new Password(player.getName(), password);
 		AuthPlayer authPlayer = new AuthPlayer(player, player.getName(), pw, pw.generateHash(), new Date().getTime(),
 				player.getAddress().getAddress(), true);
@@ -126,6 +136,29 @@ public class AuthManager {
 	}
 	
 	/**
+	 * Returns true if registrations not reached the given maxReg.<br>
+	 * false if player have exceeded the max number of registrations for player's account
+	 * @param username
+	 * @param maxReg
+	 * @return
+	 */
+	public boolean checkRegistrations(InetAddress ip, int maxReg) {
+		try {
+			final ResultSet rs = MySQL.query("SELECT usernamelobby FROM authme WHERE iplobby = '"+ip.getHostAddress()+"';");
+			
+			rs.last();
+			final int rows = rs.getRow();
+			rs.beforeFirst();
+			
+			if(rows > maxReg) return false;
+			return true;
+		} catch(SQLException e){
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
 	 * Puts the AuthPlayer to the <code>AUTH_PLAYERS</code> HashMap
 	 * @param uuid
 	 * @param authPlayer
@@ -163,6 +196,8 @@ public class AuthManager {
 						@Override
 						public void run() {
 							MySQL.update("UPDATE authme SET isLogged = 0;");
+							LogUtil.consoleSenderLog("--- DEBUG --- ["+p.getName()+"] Query AuthPlayer with IP ["+p.getAddress().getAddress()+"] at ("
+									+System.currentTimeMillis()+").");
 						}
 					}).start();
 					loggedIn = false;
@@ -172,7 +207,8 @@ public class AuthManager {
 			AuthPlayer authPlayer = new AuthPlayer(p, p.getName(), password, passwordHash, lastLogin, p.getAddress().getAddress(), loggedIn);
 			
 			this.putAuthPlayer(p.getUniqueId(), authPlayer);
-			
+			LogUtil.consoleSenderLog("--- DEBUG --- ["+p.getName()+"] Query AuthPlayer with IP ["+p.getAddress().getAddress()+"] at ("
+					+System.currentTimeMillis()+") AND is logged in = "+authPlayer.isLoggedIn()+".");
 			return authPlayer;
 		} catch(Exception e) {
 			e.printStackTrace();

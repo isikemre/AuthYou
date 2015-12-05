@@ -23,8 +23,9 @@ public class RegisterCommand implements CommandExecutor, TabCompleter {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(sender instanceof Player) {
 			if(label.equalsIgnoreCase("register")) {
-				if(args.length != 2) return false;
+				if(args.length != 2) {Messages.REG_MSG.msg((Player) sender);return false;}
 				Player p = (Player) sender;
+					
 				if(AuthYou.getAuthManager().isRegistered(p)) {
 					Messages.USER_REGGED.msg(p);
 					return true;
@@ -33,6 +34,27 @@ public class RegisterCommand implements CommandExecutor, TabCompleter {
 					Messages.WRONG_PWD.msg(p);
 					return true;
 				}
+				
+				if(!args[0].matches("[\\x21-\\x7E]*")) {
+					Messages.PASSWORD_ERROR_UNSAFE.msg(p);
+					return true;
+				}
+				
+				if(args[0].length() < 5 || args[0].length() >= 30) { //min5:max30
+					Messages.PASS_LEN.msg(p);
+					return true;
+				}
+				
+				if(args[0].equalsIgnoreCase(p.getName())) {
+					Messages.PASSWORD_ERROR_NICK.msg(p);
+					return true;
+				}
+				
+				if(!AuthYou.getAuthManager().checkRegistrations(p.getAddress().getAddress(), 1)) {
+					Messages.MAX_REG.msg(p);
+					return true;
+				}
+				
 				AuthYou.getAuthManager().registerPlayer(p, args[0]);
 				Messages.REGISTERED.msg(p);
 				return true;

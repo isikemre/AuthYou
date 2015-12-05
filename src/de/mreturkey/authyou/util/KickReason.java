@@ -5,7 +5,8 @@ import de.mreturkey.authyou.message.Messages;
 public enum KickReason {
 
 	IP_FALSE(Messages.INVALID_SESSION),
-	TIMEOUT(Messages.TIMEOUT);
+	TIMEOUT(Messages.TIMEOUT),
+	LOGOUT(Messages.LOGOUT);
 	
 	private final Messages message;
 	

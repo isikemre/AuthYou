@@ -1,11 +1,13 @@
 package de.mreturkey.authyou.security.session;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Date;
 
 import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.util.ExpireThread;
+import de.mreturkey.authyou.util.LogUtil;
 
 public class Session {
 
@@ -32,7 +34,8 @@ public class Session {
 		this.authPlayer = authPlayer;
 		this.created = new Date();
 		this.state = authPlayer == null ? SessionState.NOT_IN_USE : SessionState.IN_USE;
-		this.destroyReason = null;
+		this.destroyReason = SessionDestroyReason.NOT_DESTROYED;
+		LogUtil.sessionLogToFile(this, "OPEN");
 	}
 
 	public String getId() {
@@ -85,6 +88,23 @@ public class Session {
 		this.state = SessionState.DESTROYED;
 		if(this.authPlayer != null) this.authPlayer.setSession(null);
 		AuthYou.getSessionManager().removeSession(id);
+		LogUtil.sessionLogToFile(this, "DESTROY");
+	}
+	
+	@SuppressWarnings("deprecation")
+	public String toLog(String opendOrDestroy) {
+		final String username = authPlayer.getUsername();
+		final String realname = authPlayer.getPlayer().getName();
+		final String isLogged = authPlayer.isLoggedIn()+"";
+		final Date d = new Date();
+		final String date = d.getDay() +"." + d.getMonth() + "." + d.getYear()+" - "+d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+		if(ip == null)
+			try {
+				ip = InetAddress.getByName("0.0.0.0");
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+		return date+": SESSION["+id+"] \""+opendOrDestroy+"\" = IP["+ip.getHostAddress()+"] / AP["+username+", "+realname+", "+isLogged+"] / E["+destroyed+", "+state.toString()+", ["+destroyReason.toString()+"]";
 	}
 	
 }

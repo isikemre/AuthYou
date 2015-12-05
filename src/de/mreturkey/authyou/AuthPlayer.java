@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import de.mreturkey.authyou.security.Password;
 import de.mreturkey.authyou.security.session.Session;
 import de.mreturkey.authyou.security.session.SessionDestroyReason;
+import de.mreturkey.authyou.util.LogUtil;
 import de.mreturkey.authyou.util.QueryThreadAuthPlayer;
 import de.mreturkey.authyou.util.SQLQueryType;
 
@@ -109,6 +110,8 @@ public class AuthPlayer {
 	public void renewSession() {
 		if(!session.isDestroyed()) session.destroy(SessionDestroyReason.DESTROYED);
 		session = AuthYou.getSessionManager().generateNewSession(this);
+		LogUtil.consoleSenderLog("--- DEBUG --- ["+player.getName()+"] Session renewed with IP ["+player.getAddress().getAddress()+"] at ("
+				+System.currentTimeMillis()+") AND is logged in = "+loggedIn+".");
 	}
 	
 }

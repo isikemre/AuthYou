@@ -5,9 +5,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.message.Messages;
-import de.mreturkey.authyou.util.WaitForLoginThread;
+import de.mreturkey.authyou.util.KickReason;
 
 public class LogoutCommand implements CommandExecutor {
 
@@ -16,14 +17,16 @@ public class LogoutCommand implements CommandExecutor {
 		if(sender instanceof Player) {
 			if(label.equalsIgnoreCase("logout")) {
 				Player p = (Player) sender;
-				AuthYou.getAuthPlayer(p).logout();
-				Messages.LOGOUT.msg(p);
-				AuthYou.getAuthManager().authenticatePlayer(p); //TODO PLEASEEEEEEEEEEE
-				new WaitForLoginThread(p, 5);
-				return true;
+				AuthPlayer authPlayer = AuthYou.getAuthPlayer(p);
+				if(authPlayer.isLoggedIn()) {
+					authPlayer.logout();
+					AuthYou.getAuthManager().kickPlayer(p, authPlayer, KickReason.LOGOUT);
+				} else {
+					Messages.NOT_LOGGED_IN.msg(p);
+				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 }

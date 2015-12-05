@@ -4,6 +4,7 @@ public enum SessionDestroyReason {
 
 	EXPIRED,
 	DESTROYED,
-	LOGOUT;
+	LOGOUT,
+	NOT_DESTROYED;
 	
 }

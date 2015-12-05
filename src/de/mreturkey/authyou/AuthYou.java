@@ -39,6 +39,7 @@ public class AuthYou extends JavaPlugin {
 	
 	public void registerEvents() {
 		Bukkit.getPluginManager().registerEvents(new PlayerEventListener(), this);
+		Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 	}
 	
 	public void registerCommands() {

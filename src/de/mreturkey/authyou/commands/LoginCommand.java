@@ -20,12 +20,11 @@ public class LoginCommand implements CommandExecutor, TabCompleter {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(sender instanceof Player) {
 			if(label.equalsIgnoreCase("login") || label.equalsIgnoreCase("l")) {
-				if(args.length != 1) return true;
+				if(args.length != 1) {Messages.LOGIN_MSG.msg((Player) sender);return true;}
 				Player p = (Player) sender;
 				AuthPlayer authPlayer = AuthYou.getAuthManager().getAuthPlayer(p);
 				
 				if(authPlayer == null) {
-					p.sendMessage("authPlayer is null | DEBUG");
 					return true;
 				}
 				

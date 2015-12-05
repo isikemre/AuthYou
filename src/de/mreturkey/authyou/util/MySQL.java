@@ -17,7 +17,6 @@ public class MySQL {
 	    	Connection con = DriverManager.getConnection("jdbc:mysql://" + database.getHost() + ":" + database.getPort() + "/" + database.getDatabase() + "?user=" + database.getUser() + "&password=" + database.getPassword() + "&autoReconnect=true");
 	    	MySQL.con = con;
 	    	LogUtil.consoleSenderLog("§e[MySQL]§r §2Connected! ("+database.getUser()+"@"+database.getHost()+":"+database.getPort()+")");
-	    	createTables();
 	    	return con;
 	    } catch(Exception e) {
 	    	e.printStackTrace();
@@ -26,12 +25,6 @@ public class MySQL {
 		return con;
 	}
 
-	public static void createTables(){
-		update("CREATE TABLE IF NOT EXISTS mz_players (uuid VARCHAR(36) PRIMARY KEY NOT NULL, name VARCHAR(255) UNIQUE KEY, request_allowed TINYINT(1), game_invite_allowed TINYINT(1), mails_allowed TINYINT(1), offline_mails_allowed TINYINT(1))");
-		update("CREATE TABLE IF NOT EXISTS mz_friends (player_uuid VARCHAR(36) NOT NULL, friend_uuid VARCHAR(36), player_name VARCHAR(255), friend_name VARCHAR(255), request_accepted TINYINT(1), blocked TINYINT(1))");
-		update("CREATE TABLE IF NOT EXISTS mz_mails (uuid VARCHAR(36) NOT NULL, friend_uuid VARCHAR(36), mail VARCHAR(120), unread TINYINT(1))");
-	}
-	
 	public static void close() {
 		if (con != null) {
 			try {
@@ -46,7 +39,6 @@ public class MySQL {
 		try {
 			Statement stmt = con.createStatement();
 			stmt.executeUpdate(qry);
-			LogUtil.consoleSenderLog("DEBUG: "+qry);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -58,7 +50,6 @@ public class MySQL {
 		try {
 			Statement stmt = con.createStatement();
 			rs = stmt.executeQuery(qry);
-			LogUtil.consoleSenderLog("DEBUG: "+qry);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

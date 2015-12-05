@@ -32,7 +32,11 @@ public enum Messages {
 	REGISTERED,
 	TIMEOUT,
 	USAGE_CHANGEPASSWORD,
-	INVALID_SESSION;
+	INVALID_SESSION,
+	REGEX,
+	PASS_LEN,
+	NAME_LEN,
+	PASSWORD_ERROR_UNSAFE;
 	
 	private static File messageFile;
 	private static YamlConfiguration yaml;
@@ -57,14 +61,18 @@ public enum Messages {
 			yaml.set("reg_msg", "&cPlease register with \"/register password ConfirmPassword\"");
 			yaml.set("pwd_changed", "&cPassword changed!");
 			yaml.set("user_unknown", "&cUsername not registered");
-			yaml.set("password_error", "&fPassword doesn''t match");
-			yaml.set("password_error_nick", "&fYou can''t use your name as password, please choose another one");
+			yaml.set("password_error", "&cPassword doesn''t match");
+			yaml.set("password_error_nick", "&cYou can''t use your name as password, please choose another one");
 			yaml.set("logged_in", "&cYou''re already logged in!");
 			yaml.set("logout", "&cSuccessfully logged out");
 			yaml.set("registered", "&cSuccessfully registered!");
-			yaml.set("timeout", "&fLogin timeout, please try again");
-			yaml.set("usage_changepassword", "&fUsage: /changepassword oldPassword newPassword");
-			yaml.set("invalid_session", "&fSession datas doesn''t match. Please wait until the end of the current session");
+			yaml.set("timeout", "&cLogin timeout, please try again");
+			yaml.set("usage_changepassword", "&cUsage: /changepassword oldPassword newPassword");
+			yaml.set("invalid_session", "&cSession datas doesn't match. Please wait until the end of the current session");
+			yaml.set("regex", "&cYour nickname contains illegal characters. Allowed chars: REG_EX&cYour nickname contains illegal characters. Allowed chars: REG_EX");
+			yaml.set("pass_len", "&cYour password didn't reach the minimum length or exceeded the max length");
+			yaml.set("name_len", "&cYour nickname is either too short or too long");
+			yaml.set("password_error_unsafe", "&cThe chosen password is not safe, please choose another one");
 			
 			try {
 				yaml.save(messageFile);
@@ -80,6 +88,9 @@ public enum Messages {
 	private Messages() {
 		if(!isLoaded()) loadMessages();
 		this.msg = getYaml().getString(this.toString().toLowerCase());
+		if(this.name().equalsIgnoreCase("regex")){
+			this.msg.replace("REG_EX", "[a-zA-Z0-9_]*");
+		}
 	}
 	
 	private static boolean isLoaded() {
