@@ -13,6 +13,7 @@ import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.message.Messages;
 import de.mreturkey.authyou.util.HashUtils;
+import de.mreturkey.authyou.util.KickReason;
 
 public class LoginCommand implements CommandExecutor, TabCompleter {
 
@@ -38,7 +39,7 @@ public class LoginCommand implements CommandExecutor, TabCompleter {
 						AuthYou.getAuthPlayer(p).setLoggedIn(true);
 						Messages.LOGIN.msg(p);
 					} else {
-						Messages.WRONG_PWD.msg(p);
+						AuthYou.getAuthManager().kickPlayer(p, authPlayer, KickReason.WRONG_PASSWORD);
 					}
 					return true;
 				} catch (NoSuchAlgorithmException e) {

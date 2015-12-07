@@ -9,11 +9,14 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import de.mreturkey.authyou.security.Password;
 import de.mreturkey.authyou.security.session.Session;
+import de.mreturkey.authyou.security.session.SessionDestroyReason;
 import de.mreturkey.authyou.util.KickReason;
 import de.mreturkey.authyou.util.LogUtil;
 import de.mreturkey.authyou.util.MySQL;
@@ -37,9 +40,13 @@ public class AuthManager {
 		AuthPlayer authPlayer = getAuthPlayer(uuid);
 		if(authPlayer != null) {
 			Session session = authPlayer.getSession();
-			if(session.isDestroyed()) return true;
+			if(session == null || session.isDestroyed()) {
+				clearAuthPlayer(uuid, authPlayer);
+				return true;
+			}
 			if(!session.getIP().equals(ip)) {
-				authPlayer.logout();
+				authPlayer.logout(false);
+				clearAuthPlayer(uuid, authPlayer);
 				return false;
 			}
 		}
@@ -61,9 +68,10 @@ public class AuthManager {
 		AuthPlayer authPlayer = getAuthPlayer(player);
 		if(authPlayer != null) {
 			Session session = authPlayer.getSession();
-			if(!session.isDestroyed()) {
+			if(session == null || !session.isDestroyed()) {
 				if(!session.getIP().equals(player.getAddress().getAddress())) kickPlayer(player, authPlayer, KickReason.IP_FALSE);
 			} else authPlayer.renewSession();
+			if(new Date().after(new Date(authPlayer.getLastLogin() + TimeUnit.DAYS.toMillis(3)))) authPlayer.setLoggedIn(false);
 		} else authPlayer = queryAuthPlayer(player);
 		return authPlayer;
 	}
@@ -83,6 +91,12 @@ public class AuthManager {
 			out.writeUTF(kickReason.getReason());
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			new BukkitRunnable() {
+				public void run() {
+					if(p != null && kickReason != null) p.kickPlayer(kickReason.getReason());
+				}
+			}.runTaskLater(AuthYou.getInstance(), 40);
 		}
 		LogUtil.consoleSenderLog("--- DEBUG --- ["+p.getName()+"] Player kicked with IP ["+p.getAddress().getAddress()+"] at ("
 				+System.currentTimeMillis()+") for "+kickReason.toString()+".");
@@ -127,7 +141,7 @@ public class AuthManager {
 	public boolean isRegistered(Player p) {
 		if(this.getAuthPlayer(p) != null) return true;
 		try {
-			final ResultSet rs = MySQL.query("SELECT * FROM authme WHERE usernamelobby = '"+p.getName()+"';");
+			final ResultSet rs = MySQL.query("SELECT * FROM authme WHERE username = '"+p.getName()+"';");
 			if(rs.first()) return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -144,7 +158,7 @@ public class AuthManager {
 	 */
 	public boolean checkRegistrations(InetAddress ip, int maxReg) {
 		try {
-			final ResultSet rs = MySQL.query("SELECT usernamelobby FROM authme WHERE iplobby = '"+ip.getHostAddress()+"';");
+			final ResultSet rs = MySQL.query("SELECT username FROM authme WHERE iplobby = '"+ip.getHostAddress()+"';");
 			
 			rs.last();
 			final int rows = rs.getRow();
@@ -180,7 +194,7 @@ public class AuthManager {
 	 */
 	private AuthPlayer queryAuthPlayer(Player p) {
 		try {
-			final ResultSet rs = MySQL.query("SELECT * FROM authme WHERE usernamelobby = '"+p.getName()+"';");
+			final ResultSet rs = MySQL.query("SELECT * FROM authme WHERE username = '"+p.getName()+"';");
 			if(!rs.first()) return null;
 			
 			final Password password = new Password(p.getName(), rs.getString("password"));
@@ -214,6 +228,15 @@ public class AuthManager {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	private void clearAuthPlayer(UUID uuid, AuthPlayer authPlayer) {
+		Session session = authPlayer.getSession();
+		if(session != null) {
+			session.destroy(SessionDestroyReason.DESTROYED);
+		}
+		authPlayer.clear();
+		AUTH_PLAYERS.remove(uuid);
 	}
 	
 }

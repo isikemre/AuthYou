@@ -6,7 +6,6 @@ import java.util.Date;
 
 import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
-import de.mreturkey.authyou.util.ExpireThread;
 import de.mreturkey.authyou.util.LogUtil;
 
 public class Session {
@@ -14,8 +13,6 @@ public class Session {
 	private final String id;
 	private final Date created;
 	
-	private final ExpireThread expireThread;
-
 	private SessionState state;
 	private SessionDestroyReason destroyReason;
 	
@@ -29,7 +26,6 @@ public class Session {
 	}
 	
 	protected Session(final String id, final AuthPlayer authPlayer) {
-		this.expireThread = new ExpireThread(this);
 		this.id = id;
 		this.authPlayer = authPlayer;
 		this.created = new Date();
@@ -65,10 +61,6 @@ public class Session {
 	public InetAddress getIP() {
 		return ip;
 	}
-	
-	public ExpireThread geExpireThread() {
-		return expireThread;
-	}
 
 	public void setState(SessionState state) {
 		this.state = state;
@@ -94,7 +86,7 @@ public class Session {
 	@SuppressWarnings("deprecation")
 	public String toLog(String opendOrDestroy) {
 		final String username = authPlayer.getUsername();
-		final String realname = authPlayer.getPlayer().getName();
+		final String realname = authPlayer.getPlayer().getName() == null ? "NULL" : authPlayer.getPlayer().getName();
 		final String isLogged = authPlayer.isLoggedIn()+"";
 		final Date d = new Date();
 		final String date = d.getDay() +"." + d.getMonth() + "." + d.getYear()+" - "+d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();

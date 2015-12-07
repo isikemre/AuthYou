@@ -16,11 +16,14 @@ public class ExpireThread extends Thread implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(TimeUnit.HOURS.toMillis(4));
+			Thread.sleep(TimeUnit.DAYS.toMillis(3));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		if(!session.isDestroyed()) session.destroy(SessionDestroyReason.EXPIRED);
+		if(!session.isDestroyed()){
+			session.destroy(SessionDestroyReason.EXPIRED);
+			
+		}
 	}
 	
 }

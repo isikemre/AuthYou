@@ -76,6 +76,10 @@ public class AuthPlayer {
 				session.destroy(SessionDestroyReason.DESTROYED);
 			}
 			session = AuthYou.getSessionManager().generateNewSession(this);
+		} else {
+			if(session != null) {
+				session.destroy(SessionDestroyReason.DESTROYED);
+			}
 		}
 		this.refresh();
 	}
@@ -85,8 +89,13 @@ public class AuthPlayer {
 	}
 	
 	public void logout() {
-		this.setLoggedIn(false);
-		this.session.destroy(SessionDestroyReason.LOGOUT);
+		this.logout(true);
+	}
+	
+	public void logout(boolean mysql) {
+		if(mysql) this.setLoggedIn(false);
+		else this.loggedIn = false;
+		if(this.session != null) session.destroy(SessionDestroyReason.LOGOUT);
 		AuthYou.getAuthManager().removeAuthPlayer(this);
 	}
 	
@@ -103,7 +112,7 @@ public class AuthPlayer {
 	private void refresh() {
 		this.ip = this.player.getAddress().getAddress();
 		this.lastLogin = System.currentTimeMillis();
-		this.session.setIP(ip);
+		if(this.session != null) this.session.setIP(ip);
 		new QueryThreadAuthPlayer(this, SQLQueryType.REFRESH);
 	}
 	
@@ -112,6 +121,15 @@ public class AuthPlayer {
 		session = AuthYou.getSessionManager().generateNewSession(this);
 		LogUtil.consoleSenderLog("--- DEBUG --- ["+player.getName()+"] Session renewed with IP ["+player.getAddress().getAddress()+"] at ("
 				+System.currentTimeMillis()+") AND is logged in = "+loggedIn+".");
+	}
+	
+	public void clear() {
+		this.loggedIn = false;
+		new QueryThreadAuthPlayer(this, SQLQueryType.LOGGED_CHANGE);
+		this.player = null;
+		this.lastLogin = 0;
+		this.ip = null;
+		this.session = null;
 	}
 	
 }

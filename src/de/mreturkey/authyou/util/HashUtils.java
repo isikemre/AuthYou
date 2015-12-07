@@ -4,10 +4,12 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.regex.Pattern;
 
 public class HashUtils {
 	
 	private static final SecureRandom rnd = new SecureRandom();
+	public static final Pattern PATTERN = Pattern.compile("[a-zA-Z0-9_?]*");
 
 	/*
 	public static String getSha256(String value) {

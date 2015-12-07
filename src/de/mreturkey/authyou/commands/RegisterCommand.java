@@ -25,7 +25,13 @@ public class RegisterCommand implements CommandExecutor, TabCompleter {
 			if(label.equalsIgnoreCase("register")) {
 				if(args.length != 2) {Messages.REG_MSG.msg((Player) sender);return false;}
 				Player p = (Player) sender;
-					
+				final String playerPassLowerCase = args[0].toLowerCase();
+				// Command logic
+		        if (playerPassLowerCase.contains("delete") || playerPassLowerCase.contains("where") || playerPassLowerCase.contains("insert") || playerPassLowerCase.contains("modify") || playerPassLowerCase.contains("from") || playerPassLowerCase.contains("select") || playerPassLowerCase.contains(";") || playerPassLowerCase.contains("null")) {
+		            Messages.PASSWORD_ERROR.msg(p);
+		            return true;
+		        }
+				
 				if(AuthYou.getAuthManager().isRegistered(p)) {
 					Messages.USER_REGGED.msg(p);
 					return true;
@@ -35,7 +41,7 @@ public class RegisterCommand implements CommandExecutor, TabCompleter {
 					return true;
 				}
 				
-				if(!args[0].matches("[\\x21-\\x7E]*")) {
+				if(!playerPassLowerCase.matches("[\\x21-\\x7E]*")) {
 					Messages.PASSWORD_ERROR_UNSAFE.msg(p);
 					return true;
 				}

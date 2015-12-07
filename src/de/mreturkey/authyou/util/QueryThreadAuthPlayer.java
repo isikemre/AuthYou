@@ -23,10 +23,10 @@ public class QueryThreadAuthPlayer extends Thread implements Runnable {
 			final double x = loc.getX();
 			final double y = loc.getY();
 			final double z = loc.getZ();
-			MySQL.update("INSERT INTO authme (usernamelobby, password, iplobby, lastloginlobby, x, y, z, mz_lobby, emaillobby1, isLogged, realname) "
+			MySQL.update("INSERT INTO authme (username, password, iplobby, lastloginlobby, x, y, z, mz_lobby, emaillobby1, isLogged, uuid) "
 					+ "VALUES ('"+authPlayer.getUsername()+"', '"+authPlayer.getPasswordHash()+"', "
 					+ "'"+authPlayer.getIP().getHostAddress()+"', '"+authPlayer.getLastLogin()+"', "
-					+ "'"+x+"', '"+y+"', '"+z+"', 'mz_lobby', 'your@email.com', '"+MySQL.convertBooleanToInteger(authPlayer.isLoggedIn())+"', '"+authPlayer.getPlayer().getName()+"')");
+					+ "'"+x+"', '"+y+"', '"+z+"', 'mz_lobby', 'your@email.com', '"+MySQL.convertBooleanToInteger(authPlayer.isLoggedIn())+"', '"+authPlayer.getPlayer().getUniqueId()+"')");
 			break;
 		}
 
@@ -36,7 +36,7 @@ public class QueryThreadAuthPlayer extends Thread implements Runnable {
 					+ "lastloginlobby = '"+authPlayer.getLastLogin()+"', "
 					+ "isLogged = "+MySQL.convertBooleanToInteger(authPlayer.isLoggedIn())
 					
-					+ " WHERE usernamelobby = '"+authPlayer.getUsername()+"';");
+					+ " WHERE username = '"+authPlayer.getUsername()+"';");
 			break;
 			
 		case UPDATE: {
@@ -45,7 +45,7 @@ public class QueryThreadAuthPlayer extends Thread implements Runnable {
 			final double y = loc.getY();
 			final double z = loc.getZ();
 			MySQL.update("UPDATE authme SET "
-					+ "usernamelobby = '"+authPlayer.getUsername()+"', "
+					+ "username = '"+authPlayer.getUsername()+"', "
 					+ "password = '"+authPlayer.getPasswordHash()+"', "
 					+ "iplobby = '"+authPlayer.getIP().getHostAddress()+"', "
 					+ "lastloginlobby = '"+authPlayer.getLastLogin()+"', "
@@ -55,14 +55,22 @@ public class QueryThreadAuthPlayer extends Thread implements Runnable {
 					+ "mz_lobby = '"+ "mz_lobby" +"', "
 					+ "emaillobby1 = '"+ "your@email.com" +"', "
 					+ "isLogged = "+MySQL.convertBooleanToInteger(authPlayer.isLoggedIn())+", "
-					+ "realname = '"+authPlayer.getPlayer().getName()+"'"
+					+ "uuid = '"+authPlayer.getPlayer().getUniqueId()+"'"
 					
-					+ " WHERE usernamelobby = '"+authPlayer.getUsername()+"';");
+					+ " WHERE username = '"+authPlayer.getUsername()+"';");
+			break;
+		}
+		
+		case LOGGED_CHANGE: {
+			MySQL.update("UPDATE authme SET "
+					+ "isLogged = "+MySQL.convertBooleanToInteger(authPlayer.isLoggedIn())
+					
+					+ " WHERE username = '"+authPlayer.getUsername()+"';");
 			break;
 		}
 			
 		case DELETE:
-			MySQL.update("DELETE FROM mz_friends WHERE usernamelobby = '"+authPlayer.getUsername()+"';");
+			MySQL.update("DELETE FROM authme WHERE username = '"+authPlayer.getUsername()+"';");
 			break;
 			
 		default:

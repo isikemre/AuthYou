@@ -5,5 +5,6 @@ public enum SQLQueryType {
 	UPDATE,
 	REFRESH,
 	INSERT,
-	DELETE;
+	DELETE,
+	LOGGED_CHANGE;
 }
