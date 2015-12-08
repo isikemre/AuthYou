@@ -2,10 +2,14 @@ package de.mreturkey.authyou.security.session;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
+
+import de.mreturkey.authyou.util.MySQL;
 
 public class SessionManager {
 
@@ -14,6 +18,27 @@ public class SessionManager {
 	
 	public SessionManager() {
 		// TODO Auto-generated constructor stub
+	}
+	
+	/**
+	 * Returns the cached Session wich is linked with the given player.<br>
+	 * You need to check wether the cached Session is valid.
+	 * @param p
+	 * @return
+	 */
+	public Session getCachedSession(Player p) {
+		return SESSIONS.get(p.getUniqueId());
+	}
+	
+	public Session querySession(Player p) {
+		ResultSet rs = MySQL.query("SELECT * FROM sessions WHERE uuid = '"+p.getUniqueId().toString()+"'");
+		try {
+			rs.getString("");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	/**
@@ -27,8 +52,9 @@ public class SessionManager {
 	}
 	
 	/**
-	 * Generates a new ID for a Session, which doesn't exist.
-	 * @return
+	 * Generates a new ID for a Session, which doesn't exist.<br>
+	 * The length of Session ID's is always 14.
+	 * @return a new ID for a Session
 	 */
 	public String generateId() {
 		String id = IDENTIFIER_GENERATOR.nextSessionId();

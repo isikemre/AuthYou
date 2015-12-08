@@ -21,8 +21,14 @@ public class MySQL {
 	    } catch(Exception e) {
 	    	e.printStackTrace();
 	    	LogUtil.consoleSenderLog("§e[MySQL]§r §4Failed to connect ("+database.getUser()+"@"+database.getHost()+":"+database.getPort()+")");
+	    } finally {
+	    	createTables();
 	    }
 		return con;
+	}
+	
+	public static void createTables() {
+		MySQL.update("CREATE TABLE `sessions` ( `id` VARCHAR(14) NULL DEFAULT NULL COMMENT 'Session ID' , `uuid` VARCHAR(36) NULL DEFAULT NULL COMMENT 'UUID of player' , `ip` VARCHAR(15) NULL DEFAULT NULL COMMENT 'IP of player' , `last_login` TIMESTAMP NULL DEFAULT NULL COMMENT 'Timestamp of the last login' , `state` VARCHAR(50) NULL DEFAULT NULL COMMENT 'State of Session' , `destroy_reason` VARCHAR(50) NULL DEFAULT NULL COMMENT 'The Reason why this Session is destroyed, or not.' , PRIMARY KEY (`id`)) ENGINE = InnoDB;");
 	}
 
 	public static void close() {
