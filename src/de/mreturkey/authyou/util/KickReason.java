@@ -4,7 +4,8 @@ public enum KickReason {
 
 	IP_FALSE(Messages.INVALID_SESSION),
 	TIMEOUT(Messages.TIMEOUT),
-	LOGOUT(Messages.LOGOUT);
+	LOGOUT(Messages.LOGOUT),
+	WRONG_PASSWORD(Messages.WRONG_PWD);
 	
 	private final Messages message;
 	

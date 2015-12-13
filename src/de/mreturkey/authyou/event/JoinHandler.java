@@ -8,9 +8,9 @@ import de.mreturkey.authyou.security.session.Session;
 
 public class JoinHandler implements Runnable {
 
-	private PlayerJoinEvent e;
+	private final PlayerJoinEvent e;
 	
-	public JoinHandler(PlayerJoinEvent e) {
+	public JoinHandler(final PlayerJoinEvent e) {
 		this.e = e;
 	}
 	
@@ -19,6 +19,7 @@ public class JoinHandler implements Runnable {
 		try {
 			if(Config.getSessionsEnabled) {
 				Session session = AuthYou.getSession(e.getPlayer());
+				session.getId();
 			} else {
 				//wait for... thead
 			}

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.config.Config;
+import de.mreturkey.authyou.util.MySQL;
 
 public class Session {
 
@@ -135,6 +136,6 @@ public class Session {
 	}
 	
 	public void update() {
-		
+		MySQL.insertOrUpdateSession(this);
 	}
 }

@@ -15,6 +15,7 @@ public class AuthYou extends JavaPlugin {
 	private static AuthYou instance;
 	private static final SessionManager sessionManager = new SessionManager();
 	private static final AuthManager authManager = new AuthManager();
+	private static Config config;
 	
 	public static AuthYou getInstance() {
 		return instance;
@@ -22,6 +23,7 @@ public class AuthYou extends JavaPlugin {
 
 	public void onLoad() {
 		instance = this;
+		config = new Config();
 		MySQL.openConnection();
 	}
 	
@@ -31,7 +33,7 @@ public class AuthYou extends JavaPlugin {
 	}
 	
 	public void onDisable() {
-		
+		MySQL.close();
 	}
 	
 	public void registerEvents() {
@@ -48,6 +50,10 @@ public class AuthYou extends JavaPlugin {
 	
 	public static AuthManager getAuthManager() {
 		return authManager;
+	}
+	
+	public static Config getConf() {
+		return config;
 	}
 	
 	public static Session getSession(Player p) throws IllegalAccessException {
