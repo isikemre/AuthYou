@@ -6,12 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import de.mreturkey.authyou.config.Config;
+import de.mreturkey.authyou.config.Database;
+
 public class MySQL {
 
 	public static Connection con;
 
 	public static Connection openConnection() {
-		DataBase database = DataBase.DATABASE;
+		Database database = Config.getDatabase;
 	    try {
 	    	LogUtil.consoleSenderLog("§e[MySQL]§r §6Conntecting... ("+database.getUser()+"@"+database.getHost()+":"+database.getPort()+")");
 	    	Connection con = DriverManager.getConnection("jdbc:mysql://" + database.getHost() + ":" + database.getPort() + "/" + database.getDatabase() + "?user=" + database.getUser() + "&password=" + database.getPassword() + "&autoReconnect=true");

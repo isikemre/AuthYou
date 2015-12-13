@@ -54,7 +54,7 @@ public class HashUtils {
      * @return String * @throws NoSuchAlgorithmException * @see fr.xephi.authme.security.crypts.EncryptionMethod#getHash(String, String, String)
      * @throws NoSuchAlgorithmException 
      */
-    public static String getHash(String password, String salt, String name) throws NoSuchAlgorithmException {
+    public static String getHash(String password, String salt) throws NoSuchAlgorithmException {
         return "$SHA$" + salt + "$" + getSHA256(getSHA256(password) + salt);
     }
 
@@ -68,9 +68,9 @@ public class HashUtils {
      * @return boolean * @throws NoSuchAlgorithmException * @see fr.xephi.authme.security.crypts.EncryptionMethod#comparePassword(String, String, String)
      * @throws NoSuchAlgorithmException 
      */
-    public static boolean comparePassword(String hash, String password, String playerName) throws NoSuchAlgorithmException {
+    public static boolean comparePassword(String hash, String password) throws NoSuchAlgorithmException {
         String[] line = hash.split("\\$");
-        return hash.equals(getHash(password, line[2], ""));
+        return hash.equals(getHash(password, line[2]));
     }
     
     public static String createSalt(int length) throws NoSuchAlgorithmException {

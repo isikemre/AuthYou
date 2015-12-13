@@ -1,6 +1,8 @@
 package de.mreturkey.authyou.security.session;
 
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,6 +24,7 @@ public class SessionManager {
 	
 	/**
 	 * Returns the cached Session wich is linked with the given player.<br>
+	 * If the returned object is null, the player doesn't exist in the cache.<br><br>
 	 * You need to check wether the cached Session is valid.
 	 * @param p
 	 * @return
@@ -30,12 +33,30 @@ public class SessionManager {
 		return SESSIONS.get(p.getUniqueId());
 	}
 	
-	public Session querySession(Player p) {
+	/**
+	 * Returns the session which is stored in mysql.<br>
+	 * If the returned object is null, the player doesn't exist in the mysql database or the session is destroyed.
+	 * @param p
+	 * @return
+	 */
+	public Session getQueryedSession(Player p) {
 		ResultSet rs = MySQL.query("SELECT * FROM sessions WHERE uuid = '"+p.getUniqueId().toString()+"'");
 		try {
-			rs.getString("");
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			if(!rs.first()) return null;
+			
+			final boolean destroyed = rs.getBoolean("destroyed");
+			
+			if(destroyed) return null;
+			
+			final UUID uuid = UUID.fromString(rs.getString("uuid"));
+			final String id = rs.getString("id");
+			final InetAddress ip = InetAddress.getByName(rs.getString("ip"));
+			final long lastLogin = rs.getTimestamp("last_login").getTime();
+
+			final DestroyReason destroyReason = DestroyReason.valueOf(rs.getString("destroy_reason"));
+			final SessionState state = SessionState.valueOf(rs.getString("state"));
+			return new Session(uuid, id, ip, lastLogin, destroyed, destroyReason, state);
+		} catch (SQLException | UnknownHostException e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -47,8 +68,7 @@ public class SessionManager {
 	 * @return
 	 */
 	public Session getNewSession(Player p) {
-		Session session = new Session(p);
-		return session;
+		return new Session(p);
 	}
 	
 	/**

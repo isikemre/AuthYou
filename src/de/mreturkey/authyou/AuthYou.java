@@ -1,11 +1,12 @@
 package de.mreturkey.authyou;
 
-import java.util.UUID;
-
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import de.mreturkey.authyou.config.Config;
+import de.mreturkey.authyou.security.session.Session;
 import de.mreturkey.authyou.security.session.SessionManager;
 import de.mreturkey.authyou.util.MySQL;
 
@@ -34,14 +35,11 @@ public class AuthYou extends JavaPlugin {
 	}
 	
 	public void registerEvents() {
-		Bukkit.getPluginManager().registerEvents(new PlayerEventListener(), this);
-		Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+		if(Config.kickViaBungeeCord) Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 	}
 	
 	public void registerCommands() {
-		this.getCommand("login").setExecutor(new LoginCommand());
-		this.getCommand("register").setExecutor(new RegisterCommand());
-		this.getCommand("logout").setExecutor(new LogoutCommand());
+		
 	}
 	
 	public static SessionManager getSessionManager() {
@@ -52,12 +50,13 @@ public class AuthYou extends JavaPlugin {
 		return authManager;
 	}
 	
-	public static AuthPlayer getAuthPlayer(Player player) {
-		return authManager.getAuthPlayer(player);
+	public static Session getSession(Player p) throws IllegalAccessException {
+		Validate.notNull(p, "player cannot be null");
+		if(!p.isOnline()) throw new IllegalAccessException("player need to be online!");
+		Session session = sessionManager.getCachedSession(p);
+		if(session == null) {
+			session = sessionManager.getQueryedSession(p);
+		}
+		return session;
 	}
-	
-	public static AuthPlayer getAuthPlayer(UUID uuid) {
-		return authManager.getAuthPlayer(uuid);
-	}
-	
 }

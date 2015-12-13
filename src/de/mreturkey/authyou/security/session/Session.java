@@ -1,11 +1,13 @@
 package de.mreturkey.authyou.security.session;
 
 import java.net.InetAddress;
+import java.util.Date;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.AuthYou;
+import de.mreturkey.authyou.config.Config;
 
 public class Session {
 
@@ -15,6 +17,7 @@ public class Session {
 	private final long lastLogin;
 	
 	private boolean destroyed;
+	private DestroyReason destroyReason;
 	private SessionState state;
 	
 	/**
@@ -26,13 +29,14 @@ public class Session {
 	 * @param destroyed
 	 * @param state
 	 */
-	public Session(UUID uuid, String id, InetAddress ip, long lastLogin, boolean destroyed, SessionState state) {
+	protected Session(UUID uuid, String id, InetAddress ip, long lastLogin, boolean destroyed, DestroyReason destroyReason, SessionState state) {
 		this.id = id;
 		this.uuid = uuid;
 		this.ip = ip;
 		this.lastLogin = lastLogin;
 		
 		this.destroyed = destroyed;
+		this.destroyReason = destroyReason;
 		this.state = state;
 		SessionManager.SESSIONS.put(uuid, this);
 	}
@@ -42,8 +46,8 @@ public class Session {
 	 * This Session will be added to the Map (SESSIONS).
 	 * @param p
 	 */
-	public Session(Player p) {
-		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, SessionState.IN_USE);
+	protected Session(Player p) {
+		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.IN_USE);
 	}
 
 	/**
@@ -87,6 +91,14 @@ public class Session {
 	public boolean isDestroyed() {
 		return destroyed;
 	}
+	
+	/**
+	 * Returns the reason why this session is destroyed or not.
+	 * @return the reason why this session is destroyed or not.
+	 */
+	public DestroyReason getDestroyReason() {
+		return destroyReason;
+	}
 
 	/**
 	 * Returns the State of this Session.
@@ -101,5 +113,28 @@ public class Session {
 	 */
 	public void destroy(DestroyReason reason) {
 		//TODO destroy()
+	}
+	
+	/**
+	 * Checks if this session is valid.<br>
+	 * @param p
+	 * @return
+	 */
+	public boolean isValid(Player p) {
+		if(!p.getAddress().getAddress().equals(ip)) {
+			if(Config.getSessionExpireOnIpChange) this.destroy(DestroyReason.IP_CHANGE);
+			return false;
+		}
+		final Date d = new Date();
+		if(d.after(new Date(lastLogin + Config.getSessionTimeOut.getTime()))) {
+			this.destroy(DestroyReason.EXPIRED);
+			return false;
+		}
+		return true;
+		//TODO Sessions table ändern und LastDestroyedReason in authme table rein
+	}
+	
+	public void update() {
+		
 	}
 }

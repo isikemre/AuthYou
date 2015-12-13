@@ -27,7 +27,7 @@ public class LogUtil {
 			@Override
 			public void run() {
 				try {
-					String log = session.toLog(opendOrDestroy);
+					String log = "LOG";
 					File file = new File(AuthYou.getInstance().getDataFolder(), "session.log");
 					if (!file.exists()) {
 						file.createNewFile();
