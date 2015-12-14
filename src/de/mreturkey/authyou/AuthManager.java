@@ -3,11 +3,8 @@ package de.mreturkey.authyou;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -17,11 +14,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import de.mreturkey.authyou.config.Config;
 import de.mreturkey.authyou.config.Message;
-import de.mreturkey.authyou.security.session.DestroyReason;
-import de.mreturkey.authyou.security.session.Session;
-import de.mreturkey.authyou.security.session.SessionState;
 import de.mreturkey.authyou.util.KickReason;
-import de.mreturkey.authyou.util.MySQL;
+import de.mreturkey.authyou.util.MySQL;	
 
 public class AuthManager {
 
