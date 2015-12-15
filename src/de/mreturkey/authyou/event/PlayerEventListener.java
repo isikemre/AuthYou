@@ -8,6 +8,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import de.mreturkey.authyou.AuthManager;
 import de.mreturkey.authyou.AuthYou;
+import de.mreturkey.authyou.config.Config;
 import de.mreturkey.authyou.security.session.Session;
 
 public class PlayerEventListener implements Listener {
@@ -21,6 +22,7 @@ public class PlayerEventListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onMove(PlayerMoveEvent e) {
+		if(Config.allowMovement) return;
 		final Session s = AuthYou.getSession(e.getPlayer());
 		if(s == null || !s.isPlayerLoggedIn(e.getPlayer())) e.getPlayer().teleport(e.getPlayer().getLocation());
 		
