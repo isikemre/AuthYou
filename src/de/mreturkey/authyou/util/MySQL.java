@@ -7,9 +7,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
+import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.config.Config;
 import de.mreturkey.authyou.config.Database;
@@ -199,7 +204,7 @@ public class MySQL {
 					
 					ps.setString(1, session.getUniqueId().toString());
 					ps.setString(2, session.getIp().getHostAddress());
-					ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+					ps.setTimestamp(3, new Timestamp(session.getLastLogin()));
 					ps.setString(4, session.getState().toString());
 					ps.setBoolean(5, session.isDestroyed());
 					ps.setString(6, session.getDestroyReason().toString());
@@ -223,7 +228,7 @@ public class MySQL {
 							+ "(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 							+ "uuid = ?, ip = ?, last_login = ?, state = ?, destroyed = ?, destroy_reason = ?");
 					
-					final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+					final Timestamp timestamp = new Timestamp(session.getLastLogin());
 					final String uuid = session.getUniqueId().toString();
 					final String ip = session.getIp().getHostAddress();
 					final String state = session.getState().toString();
@@ -260,5 +265,63 @@ public class MySQL {
 				MySQL.update("DELETE FROM session WHERE id = '"+session.getId()+"'");
 			}
 		});
+	}
+
+	/**
+	 * Returns a Future object which will contain the last inserted id.
+	 * @param session
+	 * @param player
+	 * @return
+	 */
+	public static Future<Integer> insertAuthPlayer(final Session session, final Player p, final String passwordHash, final boolean loggedIn) {
+		return AuthYou.getAuthManager().submitAsync(new Callable<Integer>() {
+			
+			@Override
+			public Integer call() throws Exception {
+				try {
+					PreparedStatement ps = con.prepareStatement("INSERT INTO "+Config.getSQLTableName+" "
+							
+							+ "("
+							+ Config.getSQLColumnUsername + ", "
+							+ Config.getSQLColumnPassword + ", "
+							+ Config.getSQLColumnIp + ", "
+							+ Config.getSQLColumnLastLogin + ", "
+							+ Config.getSQLColumnLastLocX + ", "
+							+ Config.getSQLColumnLastLocY + ", "
+							+ Config.getSQLColumnLastLocZ + ", "
+							+ Config.getSQLColumnLastLocWorld + ", "
+							+ Config.getSQLColumnLogged + 
+							
+							") VALUES "
+							+ "(?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+					
+					ps.setString(1, p.getUniqueId().toString());
+					ps.setString(2, passwordHash);
+					ps.setString(3, p.getAddress().getAddress().getHostAddress());
+					ps.setLong(4, System.currentTimeMillis());
+					ps.setNull(5, Types.DOUBLE);
+					ps.setNull(6, Types.DOUBLE);
+					ps.setNull(7, Types.DOUBLE);
+					ps.setNull(8, Types.VARCHAR);
+					ps.setBoolean(9, loggedIn);
+					
+					ps.executeUpdate();
+					
+					ResultSet keys = ps.getGeneratedKeys();
+					keys.first();
+					int lastId = keys.getInt(1);
+					
+					ps.close();
+					return lastId;
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				return -1;
+			}
+		});
+	}
+	
+	public static void insertOrUpdateAuthPlayer(final AuthPlayer authPlayer) {
+		
 	}
 }

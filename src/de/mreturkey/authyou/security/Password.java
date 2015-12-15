@@ -9,7 +9,7 @@ public class Password {
 	private final String passwordHash;
 	
 	/**
-	 * Stores the password hash and offers nice utils
+	 * Stores the password hash and offers utils
 	 * @param passwordHash
 	 */
 	public Password(String passwordHash) {

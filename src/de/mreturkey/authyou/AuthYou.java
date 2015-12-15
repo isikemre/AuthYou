@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import de.mreturkey.authyou.config.Config;
+import de.mreturkey.authyou.event.PlayerEventListener;
 import de.mreturkey.authyou.security.session.Session;
 import de.mreturkey.authyou.security.session.SessionManager;
 import de.mreturkey.authyou.util.MySQL;
@@ -38,6 +39,7 @@ public class AuthYou extends JavaPlugin {
 	
 	public void registerEvents() {
 		if(Config.kickViaBungeeCord) Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+		Bukkit.getPluginManager().registerEvents(new PlayerEventListener(), this);
 	}
 	
 	public void registerCommands() {
@@ -56,9 +58,9 @@ public class AuthYou extends JavaPlugin {
 		return config;
 	}
 	
-	public static Session getSession(Player p) throws IllegalAccessException {
+	public static Session getSession(Player p) {
 		Validate.notNull(p, "player cannot be null");
-		if(!p.isOnline()) throw new IllegalAccessException("player need to be online!");
+		if(!p.isOnline()) throw new IllegalArgumentException("player need to be online!");
 		Session session = sessionManager.getCachedSession(p);
 		if(session == null) {
 			session = sessionManager.getQueryedSession(p);

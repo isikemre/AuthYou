@@ -4,8 +4,10 @@ import java.net.InetAddress;
 import java.util.Date;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.config.Config;
 import de.mreturkey.authyou.util.MySQL;
@@ -15,8 +17,10 @@ public class Session {
 	private final String id;
 	private final UUID uuid;
 	private final InetAddress ip;
-	private final long lastLogin;
+	private long lastLogin;
 	
+	private AuthPlayer authPlayer;
+
 	private boolean destroyed;
 	private DestroyReason destroyReason;
 	private SessionState state;
@@ -36,10 +40,12 @@ public class Session {
 		this.ip = ip;
 		this.lastLogin = lastLogin;
 		
+		this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, Bukkit.getPlayer(uuid));
+		
 		this.destroyed = destroyed;
 		this.destroyReason = destroyReason;
 		this.state = state;
-		SessionManager.SESSIONS.put(uuid, this);
+		AuthYou.getSessionManager().addCachedSession(this);
 	}
 	
 	/**
@@ -48,7 +54,8 @@ public class Session {
 	 * @param p
 	 */
 	protected Session(Player p) {
-		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.IN_USE);
+		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.NOT_IN_USE);
+		this.update();
 	}
 
 	/**
@@ -60,16 +67,32 @@ public class Session {
 	}
 	
 	/**
-	 * Returns the UUID of the player, which is linked to this Session.
+	 * Returns the UUID of the player, which uses this session
 	 * @return the UUID of the player
 	 */
 	public UUID getUniqueId() {
 		return uuid;
 	}
+	
+	/**
+	 * Returns the AuthPlayer, which uses this session
+	 * @return the {@link AuthPlayer}, which uses this session
+	 */
+	public AuthPlayer getAuthPlayer() {
+		return authPlayer;
+	}
+	
+	/**
+	 * Returns the Player, which uses this session
+	 * @return the {@link Player}, which uses this session
+	 */
+	public Player getPlayer() {
+		return Bukkit.getPlayer(uuid);
+	}
 
 	/**
 	 * Returns the IP, which is stored in this Session.<br>
-	 * Will be used to check the authentication.
+	 * Will be used to check the validation.
 	 * @return the IP, which is stored in this Session.
 	 */
 	public InetAddress getIp() {
@@ -110,18 +133,13 @@ public class Session {
 	}
 
 	/**
-	 * Destroys this Session with the given DestroyReason.
-	 */
-	public void destroy(DestroyReason reason) {
-		//TODO destroy()
-	}
-	
-	/**
 	 * Checks if this session is valid.<br>
 	 * @param p
 	 * @return
 	 */
 	public boolean isValid(Player p) {
+		if(state != SessionState.IN_USE) return false;
+		if(destroyed) return false;
 		if(!p.getAddress().getAddress().equals(ip)) {
 			if(Config.getSessionExpireOnIpChange) this.destroy(DestroyReason.IP_CHANGE);
 			return false;
@@ -131,8 +149,53 @@ public class Session {
 			this.destroy(DestroyReason.EXPIRED);
 			return false;
 		}
+		
+		if(authPlayer == null || !authPlayer.isLoggedIn()) return false;
 		return true;
 		//TODO Sessions table ändern und LastDestroyedReason in authme table rein
+	}
+	
+	/**
+	 * Checks wether authPlayer is null.<br>
+	 * If it's null, it returns false.<br>
+	 * Otherwise true
+	 * @return
+	 */
+	public boolean isPlayerRegisterd() {
+		return authPlayer != null;
+	}
+	
+	/**
+	 * Checks wether player is logged in and the session is valid.<br>
+	 * Returns true if is logged in.<br>
+	 * Otherwise false.
+	 * @return
+	 */
+	public boolean isPlayerLoggedIn(Player p) {
+		if(authPlayer != null && authPlayer.isLoggedIn() && state == SessionState.IN_USE) return true;
+		return false;
+	}
+	
+	@Deprecated
+	public void login(Player p) {
+		this.state = SessionState.IN_USE;
+		if(authPlayer == null) throw new NullPointerException("authPlayer is null");
+		this.authPlayer.setLoggedIn(true);
+		this.lastLogin = System.currentTimeMillis();
+		this.destroyed = false;
+		this.destroyReason = DestroyReason.NOT_DESTROYED;
+		this.update();
+	}
+	
+	/**
+	 * Destroys this Session with the given DestroyReason.
+	 */
+	public void destroy(DestroyReason reason) {
+		this.destroyed = true;
+		this.destroyReason = reason;
+		this.authPlayer.close();
+		this.authPlayer = null;
+		this.update();
 	}
 	
 	public void update() {

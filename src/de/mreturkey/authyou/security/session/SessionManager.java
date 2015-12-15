@@ -13,10 +13,10 @@ import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.util.MySQL;
 
-public class SessionManager {
+public final class SessionManager {
 
-	protected static final SessionIdentifierGenerator IDENTIFIER_GENERATOR = new SessionIdentifierGenerator();
-	public static final HashMap<UUID, Session> SESSIONS = new HashMap<>();
+	private final SessionIdentifierGenerator identifierGenerator = new SessionIdentifierGenerator();
+	private final HashMap<UUID, Session> sessions = new HashMap<>();
 	
 	public SessionManager() {
 		// TODO Auto-generated constructor stub
@@ -30,7 +30,7 @@ public class SessionManager {
 	 * @return
 	 */
 	public Session getCachedSession(Player p) {
-		return SESSIONS.get(p.getUniqueId());
+		return sessions.get(p.getUniqueId());
 	}
 	
 	/**
@@ -40,7 +40,7 @@ public class SessionManager {
 	 * @return
 	 */
 	public Session getQueryedSession(Player p) {
-		ResultSet rs = MySQL.query("SELECT * FROM sessions WHERE uuid = '"+p.getUniqueId().toString()+"'");
+		ResultSet rs = MySQL.query("SELECT * FROM session WHERE uuid = '"+p.getUniqueId().toString()+"'");
 		try {
 			if(!rs.first()) return null;
 			
@@ -71,19 +71,31 @@ public class SessionManager {
 		return new Session(p);
 	}
 	
+	public void addCachedSession(Session session) {
+		sessions.put(session.getUniqueId(), session);
+	}
+	
+	public void removeCachedSession(Session session) {
+		sessions.remove(session.getUniqueId(), session);
+	}
+	
+	public void removeCachedSession(UUID uuid) {
+		sessions.remove(uuid);
+	}
+	
 	/**
 	 * Generates a new ID for a Session, which doesn't exist.<br>
 	 * The length of Session ID's is always 14.
 	 * @return a new ID for a Session
 	 */
 	public String generateId() {
-		String id = IDENTIFIER_GENERATOR.nextSessionId();
-		while(SESSIONS.containsKey(id)) id = IDENTIFIER_GENERATOR.nextSessionId();
+		String id = identifierGenerator.nextSessionId();
+		while(sessions.containsKey(id)) id = identifierGenerator.nextSessionId();
 		return id;
 	}
 
-	public static SessionIdentifierGenerator getIdentifierGenerator() {
-		return IDENTIFIER_GENERATOR;
+	public SessionIdentifierGenerator getIdentifierGenerator() {
+		return identifierGenerator;
 	}
 }
 

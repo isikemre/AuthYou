@@ -1,5 +1,7 @@
 package de.mreturkey.authyou;
 
+import java.util.UUID;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -12,20 +14,22 @@ public class AuthPlayer {
 	private final Session session;
 	private final Player player;
 	
-	private final String username;
+	private final UUID uuid;
 	private final Password password;
 	
 	private boolean loggedIn;
 	private Location lastLocation;
 	
-	public AuthPlayer(int id, Session session, Player player, String username, Password password, Location lastLocation) {
+	public AuthPlayer(int id, Session session, Player player, Password password, Location lastLocation, boolean loggedIn) {
 		this.id = id;
 		this.session = session;
 		this.player = player;
-		this.username = username;
+		this.uuid = player.getUniqueId();
 		this.password = password;
-		this.loggedIn = false;
+		
+		this.loggedIn = loggedIn;
 		this.lastLocation = lastLocation;
+		AuthYou.getAuthManager().addAuthPlayer(this);
 	}
 
 	public int getId() {
@@ -40,8 +44,8 @@ public class AuthPlayer {
 		return player;
 	}
 
-	public String getUsername() {
-		return username;
+	public UUID getUniqueId() {
+		return uuid;
 	}
 
 	public Password getPassword() {
@@ -64,7 +68,15 @@ public class AuthPlayer {
 		this.loggedIn = loggedIn;
 	}
 	
+	@Deprecated
 	public void update() {
 		//TODO yap.
+	}
+	
+	public void close() {
+		this.loggedIn = false;
+		this.lastLocation = player.getLocation();
+		this.update();
+		AuthYou.getAuthManager().removeAuthPlayer(this);
 	}
 }
