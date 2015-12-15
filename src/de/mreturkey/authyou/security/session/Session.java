@@ -140,6 +140,7 @@ public class Session {
 	public boolean isValid(Player p) {
 		if(state != SessionState.IN_USE) return false;
 		if(destroyed) return false;
+		
 		if(!p.getAddress().getAddress().equals(ip)) {
 			if(Config.getSessionExpireOnIpChange) this.destroy(DestroyReason.IP_CHANGE);
 			return false;
@@ -150,7 +151,6 @@ public class Session {
 			return false;
 		}
 		
-		if(authPlayer == null || !authPlayer.isLoggedIn()) return false;
 		return true;
 		//TODO Sessions table ändern und LastDestroyedReason in authme table rein
 	}
@@ -176,10 +176,9 @@ public class Session {
 		return false;
 	}
 	
-	@Deprecated
 	public void login(Player p) {
+		if(authPlayer == null) throw new NullPointerException("authPlayer is null or not registered");
 		this.state = SessionState.IN_USE;
-		if(authPlayer == null) throw new NullPointerException("authPlayer is null");
 		this.authPlayer.setLoggedIn(true);
 		this.lastLogin = System.currentTimeMillis();
 		this.destroyed = false;
@@ -195,6 +194,7 @@ public class Session {
 		this.destroyReason = reason;
 		this.authPlayer.close();
 		this.authPlayer = null;
+		this.state = SessionState.DESTROYED;
 		this.update();
 	}
 	
