@@ -37,7 +37,7 @@ public final class AuthManager {
 		cachedPool.execute(task);
 	}
 	
-	public Future<Integer> submitAsync(Callable<Integer> callable) {
+	public Future<Object> submitAsync(Callable<Object> callable) {
 		return cachedPool.submit(callable);
 	}
 	
@@ -69,10 +69,24 @@ public final class AuthManager {
 		return null;
 	}
 	
-	public AuthPlayer registerNewAuthPlayer(Session session, Player p, String passwordHash) throws InterruptedException, ExecutionException {
-		Future<Integer> future = MySQL.insertAuthPlayer(session, p, passwordHash, true);
+	public int getAmountOfRegIPs(Session s) {
+		ResultSet rs = MySQL.query("SELECT "+Config.getSQLColumnIp+" FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUsername+" = '"+s.getUniqueId().toString()+"'");
 		try {
-			Integer lastId = future.get(30, TimeUnit.SECONDS);
+			int i = 0;
+			while(rs.next()) {
+				i++;
+			}
+			return i;
+		} catch(SQLException e){
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	
+	public AuthPlayer registerNewAuthPlayer(Session session, Player p, String passwordHash) throws InterruptedException, ExecutionException {
+		Future<Object> future = MySQL.insertAuthPlayer(session, p, passwordHash, true);
+		try {
+			int lastId = (int) future.get(30, TimeUnit.SECONDS);
 			return new AuthPlayer(lastId, session, p, new Password(passwordHash), null, true);
 		} catch (TimeoutException e) {
 			e.printStackTrace();
@@ -97,9 +111,10 @@ public final class AuthManager {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				p.kickPlayer(kickReason.getReason());
+				if(p == null || p.isOnline())
+					p.kickPlayer(kickReason.getReason());
 			}
-		}.runTaskLater(AuthYou.getInstance(), 20);
+		}.runTaskLater(AuthYou.getInstance(), 60);
 	}
 	
 	public void waitForAuth(final Message message, final Session s) {

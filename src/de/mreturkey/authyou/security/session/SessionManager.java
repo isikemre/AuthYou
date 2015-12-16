@@ -46,8 +46,6 @@ public final class SessionManager {
 			
 			final boolean destroyed = rs.getBoolean("destroyed");
 			
-			if(destroyed) return null;
-			
 			final UUID uuid = UUID.fromString(rs.getString("uuid"));
 			final String id = rs.getString("id");
 			final InetAddress ip = InetAddress.getByName(rs.getString("ip"));

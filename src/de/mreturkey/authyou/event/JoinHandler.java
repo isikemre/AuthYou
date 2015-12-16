@@ -26,19 +26,42 @@ JOINED -> SESSION_CHECK ->
 	
 	@Override
 	public void run() {
-		Session session = AuthYou.getSession(e.getPlayer());
+		boolean ignoreReload = false;
+		Session session = AuthYou.getSessionManager().getCachedSession(e.getPlayer());
+		if(session == null) {
+			session = AuthYou.getSessionManager().getQueryedSession(e.getPlayer());
+			ignoreReload = true;
+			System.out.println("1");
+		}
 		if(!Config.getSessionsEnabled || session == null) {
 			session = AuthYou.getSessionManager().getNewSession(e.getPlayer());
+			session.onPlayerJoin(e.getPlayer(), true);
+			System.out.println("2");
 		} else {
+			session.onPlayerJoin(e.getPlayer(), ignoreReload);
+			System.out.println("3");
 			if(session.isValid(e.getPlayer())) {
 				Message.VALID_SESSION.msg(e.getPlayer());
+				session.getAuthPlayer().setLoggedIn(true);
+				session.getAuthPlayer().update();
+				System.out.println("4");
 				return;
+			} else {
+				if(Config.getSessionExpireOnIpChange) {
+					session.close();
+					session = AuthYou.getSessionManager().getNewSession(e.getPlayer());
+					session.onPlayerJoin(e.getPlayer(), true);
+					System.out.println("5");
+				}
+				System.out.println("6");
 			}
 		}
 		if(session.isPlayerRegisterd()) {
 			AuthYou.getAuthManager().waitForAuth(Message.LOGIN_MSG, session);
+			System.err.println("7");
 		} else {
 			AuthYou.getAuthManager().waitForAuth(Message.REG_MSG, session);
+			System.out.println("8");
 		}
 	}
 

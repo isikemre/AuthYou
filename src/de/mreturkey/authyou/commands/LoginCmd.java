@@ -27,13 +27,13 @@ public class LoginCmd implements TabExecutor {
 		if(label.equalsIgnoreCase("login") || label.equalsIgnoreCase("l")) {
 			if(!(sender instanceof Player)) { LogUtil.consoleSenderLog("§4You can't execute this command as console."); return true; }
 			
-			Player p = (Player) sender;
+			final Player p = (Player) sender;
 			if(args.length != 1) {
 				Message.LOGIN_MSG.msg(p);
 				return true;
 			}
 			
-			Session session = AuthYou.getSession(p);
+			final Session session = AuthYou.getSession(p);
 			if(session == null) {
 				Message.INVALID_SESSION.msg(p);
 				return true;
@@ -46,7 +46,7 @@ public class LoginCmd implements TabExecutor {
 			
 			if(session.getAuthPlayer().getPassword().compare(args[0])) {
 				session.login(p);
-				Message.LOGGED_IN.msg(p);
+				Message.LOGIN.msg(p);
 			} else {
 				if(Config.kickOnWrongPassword) AuthYou.getAuthManager().kickPlayer(session, KickReason.WRONG_PASSWORD);
 				else Message.WRONG_PWD.msg(p);

@@ -5,6 +5,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import de.mreturkey.authyou.commands.LoginCmd;
+import de.mreturkey.authyou.commands.RegisterCmd;
 import de.mreturkey.authyou.config.Config;
 import de.mreturkey.authyou.event.PlayerEventListener;
 import de.mreturkey.authyou.security.session.Session;
@@ -43,7 +45,8 @@ public class AuthYou extends JavaPlugin {
 	}
 	
 	public void registerCommands() {
-		
+		this.getCommand("login").setExecutor(new LoginCmd());
+		this.getCommand("register").setExecutor(new RegisterCmd());
 	}
 	
 	public static SessionManager getSessionManager() {

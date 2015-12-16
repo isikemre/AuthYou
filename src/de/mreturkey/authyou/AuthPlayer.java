@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.security.Password;
 import de.mreturkey.authyou.security.session.Session;
+import de.mreturkey.authyou.util.MySQL;
 
 public class AuthPlayer {
 
@@ -29,6 +30,7 @@ public class AuthPlayer {
 		
 		this.loggedIn = loggedIn;
 		this.lastLocation = lastLocation;
+		
 		AuthYou.getAuthManager().addAuthPlayer(this);
 	}
 
@@ -68,9 +70,8 @@ public class AuthPlayer {
 		this.loggedIn = loggedIn;
 	}
 	
-	@Deprecated
 	public void update() {
-		//TODO yap.
+		MySQL.updateAuthPlayer(this);
 	}
 	
 	public void close() {

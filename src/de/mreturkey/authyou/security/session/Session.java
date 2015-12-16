@@ -1,15 +1,20 @@
 package de.mreturkey.authyou.security.session;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
 
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.AuthPlayer;
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.config.Config;
+import de.mreturkey.authyou.security.session.cache.Cache;
 import de.mreturkey.authyou.util.MySQL;
 
 public class Session {
@@ -20,10 +25,13 @@ public class Session {
 	private long lastLogin;
 	
 	private AuthPlayer authPlayer;
+	private Player player;
 
 	private boolean destroyed;
 	private DestroyReason destroyReason;
 	private SessionState state;
+	
+	private Cache cache;
 	
 	/**
 	 * Use this, to create a existing Session.<br>
@@ -40,11 +48,13 @@ public class Session {
 		this.ip = ip;
 		this.lastLogin = lastLogin;
 		
-		this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, Bukkit.getPlayer(uuid));
+		this.player = Bukkit.getPlayer(uuid);
+		this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, player);
 		
 		this.destroyed = destroyed;
 		this.destroyReason = destroyReason;
 		this.state = state;
+		
 		AuthYou.getSessionManager().addCachedSession(this);
 	}
 	
@@ -87,7 +97,7 @@ public class Session {
 	 * @return the {@link Player}, which uses this session
 	 */
 	public Player getPlayer() {
-		return Bukkit.getPlayer(uuid);
+		return player;
 	}
 
 	/**
@@ -131,18 +141,50 @@ public class Session {
 	public SessionState getState() {
 		return state;
 	}
+	
+	public Cache getCache() {
+		return cache;
+	}
+	
+	public void setCache(Cache cache) {
+		this.cache = cache;
+	}
+	
+	public void setAuthPlayer(AuthPlayer ap) {
+		Validate.notNull(ap, "AuthPlayer cannot be null!");
+		if(!ap.getUniqueId().equals(uuid)) throw new IllegalArgumentException("The UUID of authPlayer does not equals with the UUID in the session");
+		this.authPlayer = ap;
+	}
 
 	/**
 	 * Checks if this session is valid.<br>
+	 * Destroys the session if 'ExpireOnIpChange' is true.<br><br>
+	 * 
+	 * Same effect like<br>
+	 * <blockquote><pre>
+	 * isVaild(player, false);
+	 * </pre></blockquote>
+	 * 
 	 * @param p
-	 * @return
+	 * @return true if valid. Otherwise false.
 	 */
 	public boolean isValid(Player p) {
+		return isValid(p, false);
+	}
+	
+	/**
+	 * Checks if this session is valid.<br>
+	 * Destroys the session if 'ExpireOnIpChange' is true AND dontDestroy is false.<br><br>
+	 * 
+	 * @param p
+	 * @return true if valid. Otherwise false.
+	 */
+	public boolean isValid(Player p, boolean dontDestroy) {
 		if(state != SessionState.IN_USE) return false;
 		if(destroyed) return false;
 		
 		if(!p.getAddress().getAddress().equals(ip)) {
-			if(Config.getSessionExpireOnIpChange) this.destroy(DestroyReason.IP_CHANGE);
+			if(Config.getSessionExpireOnIpChange && !dontDestroy) this.destroy(DestroyReason.IP_CHANGE);
 			return false;
 		}
 		final Date d = new Date();
@@ -152,7 +194,6 @@ public class Session {
 		}
 		
 		return true;
-		//TODO Sessions table ändern und LastDestroyedReason in authme table rein
 	}
 	
 	/**
@@ -200,5 +241,69 @@ public class Session {
 	
 	public void update() {
 		MySQL.insertOrUpdateSession(this);
+	}
+	
+	/**
+	 * Reload's this Session.<br><br>
+	 * Returns true if the session reloaded successful.<br>
+	 * But if the session is destroyed, the reload failed<br>
+	 * or the session doesn't exist, it will return false.
+	 * 
+	 * @return true if reload was successfully. Otherwise false.<br>Then you need to generate a new session.
+	 */
+	public boolean reload() {
+		ResultSet rs = MySQL.query("SELECT * FROM session WHERE id = '"+id+"' AND uuid = '"+this.player.getUniqueId().toString()+"'");
+		try {
+			if(rs.first()) {
+				boolean destroyed = rs.getBoolean("destroyed");
+				InetAddress ip = InetAddress.getByName(rs.getString("ip"));
+				if(destroyed || !ip.equals(this.ip)) {
+					this.close();
+					return false;
+				}
+				this.lastLogin = rs.getTimestamp("last_login").getTime();
+				this.state = SessionState.valueOf(rs.getString("state"));
+				this.destroyed = destroyed;
+				this.destroyReason = DestroyReason.valueOf(rs.getString("destroy_reason"));
+				
+				this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, player);
+				return true;
+			} else {
+				
+			}
+		} catch (SQLException | UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	/**
+	 * Closes this Session.<br><br>
+	 * 
+	 * This session will be removed from mysql database.<br>
+	 * Also from the CachedSession list
+	 */
+	public void close() {
+		if(this.authPlayer != null) this.authPlayer.close();
+		this.authPlayer = null;
+		MySQL.deleteSession(this);
+		AuthYou.getSessionManager().removeCachedSession(this);
+	}
+	
+	public void onPlayerJoin(Player p, boolean ignoreReload) {
+		this.player = p;
+		this.cache = new Cache(this);
+		if(!ignoreReload) this.reload();
+	}
+	
+	public void onPlayerLeave() {
+		this.player = null;
+		this.cache.close();
+		this.cache = null;
+		if(authPlayer != null) {
+			authPlayer.setLoggedIn(false);
+			authPlayer.update();
+		}
+		this.update();
 	}
 }

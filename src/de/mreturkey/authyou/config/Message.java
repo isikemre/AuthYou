@@ -69,7 +69,7 @@ public enum Message {
 			yaml.set("timeout", "&cLogin timeout, please try again");
 			yaml.set("usage_changepassword", "&cUsage: /changepassword oldPassword newPassword");
 			yaml.set("invalid_session", "&cSession datas doesn't match. Please wait until the end of the current session");
-			yaml.set("regex", "&cYour nickname contains illegal characters. Allowed chars: REG_EX&cYour nickname contains illegal characters. Allowed chars: REG_EX");
+			yaml.set("regex", "&cYour nickname contains illegal characters. Allowed chars: REG_EX");
 			yaml.set("pass_len", "&cYour password didn't reach the minimum length or exceeded the max length");
 			yaml.set("name_len", "&cYour nickname is either too short or too long");
 			yaml.set("password_error_unsafe", "&cThe chosen password is not safe, please choose another one");
@@ -84,10 +84,12 @@ public enum Message {
 	}
 	
 	private final String msg;
+	private final String replacedMsg;
 	
 	private Message() {
 		if(!isLoaded()) loadMessages();
 		this.msg = getYaml().getString(this.toString().toLowerCase());
+		this.replacedMsg = replaceCode(msg);
 	}
 	
 	private static boolean isLoaded() {
@@ -103,10 +105,10 @@ public enum Message {
 	}
 	
 	public String getMessage(boolean altColorCode) {
-		return altColorCode ? replaceCode(msg) : msg;
+		return altColorCode ? replacedMsg : msg;
 	}
 	
 	public void msg(Player p){
-		p.sendMessage(replaceCode(msg));
+		p.sendMessage(replacedMsg);
 	}
 }

@@ -3,3 +3,9 @@ version: 1.0
 main: de.mreturkey.authyou.AuthYou
 author: mReTurkey
 description: AuthYou - A lightweight and performance-friendly plugin for the authentification
+commands:
+  login:
+    aliases: l
+    description: login to the server
+  register:
+    description: register to the server

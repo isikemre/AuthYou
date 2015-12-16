@@ -7,11 +7,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.AuthPlayer;
@@ -262,6 +262,11 @@ public class MySQL {
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				MySQL.update("DELETE FROM session WHERE id = '"+session.getId()+"'");
 			}
 		});
@@ -273,8 +278,8 @@ public class MySQL {
 	 * @param player
 	 * @return
 	 */
-	public static Future<Integer> insertAuthPlayer(final Session session, final Player p, final String passwordHash, final boolean loggedIn) {
-		return AuthYou.getAuthManager().submitAsync(new Callable<Integer>() {
+	public static Future<Object> insertAuthPlayer(final Session session, final Player p, final String passwordHash, final boolean loggedIn) {
+		return AuthYou.getAuthManager().submitAsync(new Callable<Object>() {
 			
 			@Override
 			public Integer call() throws Exception {
@@ -290,19 +295,21 @@ public class MySQL {
 							+ Config.getSQLColumnLastLocY + ", "
 							+ Config.getSQLColumnLastLocZ + ", "
 							+ Config.getSQLColumnLastLocWorld + ", "
-							+ Config.getSQLColumnLogged + 
+							+ Config.getSQLColumnLogged +
 							
 							") VALUES "
 							+ "(?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+					
+					final Location loc = p.getLocation();
 					
 					ps.setString(1, p.getUniqueId().toString());
 					ps.setString(2, passwordHash);
 					ps.setString(3, p.getAddress().getAddress().getHostAddress());
 					ps.setLong(4, System.currentTimeMillis());
-					ps.setNull(5, Types.DOUBLE);
-					ps.setNull(6, Types.DOUBLE);
-					ps.setNull(7, Types.DOUBLE);
-					ps.setNull(8, Types.VARCHAR);
+					ps.setDouble(5, loc.getX());
+					ps.setDouble(6, loc.getY());
+					ps.setDouble(7, loc.getZ());
+					ps.setString(8, loc.getWorld().getName());
 					ps.setBoolean(9, loggedIn);
 					
 					ps.executeUpdate();
@@ -321,7 +328,42 @@ public class MySQL {
 		});
 	}
 	
-	public static void insertOrUpdateAuthPlayer(final AuthPlayer authPlayer) {
-		
+	public static void updateAuthPlayer(final AuthPlayer authPlayer) {
+		AuthYou.getAuthManager().runAsync(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					PreparedStatement ps = con.prepareStatement("UPDATE "+Config.getSQLTableName+" SET "
+							+ Config.getSQLColumnUsername + " = ?, "
+							+ Config.getSQLColumnPassword + " = ?,"
+							+ Config.getSQLColumnIp + " = ?,"
+							+ Config.getSQLColumnLastLogin + " = ?,"
+							+ Config.getSQLColumnLastLocX + " = ?,"
+							+ Config.getSQLColumnLastLocY + " = ?,"
+							+ Config.getSQLColumnLastLocZ + " = ?,"
+							+ Config.getSQLColumnLastLocWorld + " = ?,"
+							+ Config.getSQLColumnLogged + " = ? WHERE "+Config.getSQLColumnId+" = "+authPlayer.getId()+"", Statement.RETURN_GENERATED_KEYS);
+					
+					final Player p = authPlayer.getPlayer();
+					final Location loc = p.getLocation();
+					
+					ps.setString(1, authPlayer.getUniqueId().toString());
+					ps.setString(2, authPlayer.getPassword().getHash());
+					ps.setString(3, p.getAddress().getAddress().getHostAddress());
+					ps.setLong(4, System.currentTimeMillis());
+					ps.setDouble(5, loc.getX());
+					ps.setDouble(6, loc.getY());
+					ps.setDouble(7, loc.getZ());
+					ps.setString(8, loc.getWorld().getName());
+					ps.setBoolean(9, authPlayer.isLoggedIn());
+					
+					ps.executeUpdate();
+					ps.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 }
