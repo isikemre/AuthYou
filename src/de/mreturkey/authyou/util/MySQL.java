@@ -130,14 +130,21 @@ public class MySQL {
 	}
 
 	public static void update(String qry) {
+		update(qry, false);
+	}
+	
+	public static boolean update(String qry, boolean withFeedback) {
 		System.out.println("DEBUG: "+qry);
+		boolean feedback = false;
 		try {
 			Statement stmt = con.createStatement();
-			stmt.executeUpdate(qry);
+			int rowsAffected = stmt.executeUpdate(qry);
+			if(withFeedback && rowsAffected > 0) feedback = true;
 			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return feedback;
 	}
 
 	public static ResultSet query(String qry) {
@@ -169,6 +176,7 @@ public class MySQL {
 	}
 	
 	public static void insertSession(final Session session) {
+		System.out.println(" --- Session \""+session.getId()+"\" ("+session.getPlayer().getName()+") insert");
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
@@ -195,6 +203,7 @@ public class MySQL {
 	}
 	
 	public static void updateSession(final Session session) {
+		System.out.println(" --- Session \""+session.getId()+"\" ("+session.getPlayer().getName()+") update");
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
@@ -219,6 +228,7 @@ public class MySQL {
 	}
 	
 	public static void insertOrUpdateSession(final Session session) {
+		System.out.println(" --- Session \""+session.getId()+"\" insertOrUpdate");
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
@@ -258,16 +268,13 @@ public class MySQL {
 		});
 	}
 	
-	public static void deleteSession(final Session session) {
-		AuthYou.getAuthManager().runAsync(new Runnable() {
+	public static Future<Object> deleteSession(final Session session) {
+		System.out.println(" --- Session \""+session.getId()+"\" delete");
+		return AuthYou.getAuthManager().submitAsync(new Callable<Object>() {
+
 			@Override
-			public void run() {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				MySQL.update("DELETE FROM session WHERE id = '"+session.getId()+"'");
+			public Object call() throws Exception {
+				return MySQL.update("DELETE FROM session WHERE id = '"+session.getId()+"'", true);
 			}
 		});
 	}

@@ -61,13 +61,14 @@ public class AuthYou extends JavaPlugin {
 		return config;
 	}
 	
+	/**
+	 * Returns the cached session of the given player.
+	 * @param p
+	 * @return
+	 */
 	public static Session getSession(Player p) {
 		Validate.notNull(p, "player cannot be null");
 		if(!p.isOnline()) throw new IllegalArgumentException("player need to be online!");
-		Session session = sessionManager.getCachedSession(p);
-		if(session == null) {
-			session = sessionManager.getQueryedSession(p);
-		}
-		return session;
+		return sessionManager.getCachedSession(p);
 	}
 }

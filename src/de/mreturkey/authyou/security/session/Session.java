@@ -1,11 +1,11 @@
 package de.mreturkey.authyou.security.session;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -65,7 +65,7 @@ public class Session {
 	 */
 	protected Session(Player p) {
 		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.NOT_IN_USE);
-		this.update();
+		if(Config.getSessionsEnabled) this.update(); //Local-Work
 	}
 
 	/**
@@ -189,7 +189,7 @@ public class Session {
 		}
 		final Date d = new Date();
 		if(d.after(new Date(lastLogin + Config.getSessionTimeOut.getTime()))) {
-			this.destroy(DestroyReason.EXPIRED);
+			if(!dontDestroy) this.destroy(DestroyReason.EXPIRED);
 			return false;
 		}
 		
@@ -197,7 +197,7 @@ public class Session {
 	}
 	
 	/**
-	 * Checks wether authPlayer is null.<br>
+	 * Checks whether authPlayer is null.<br>
 	 * If it's null, it returns false.<br>
 	 * Otherwise true
 	 * @return
@@ -207,7 +207,7 @@ public class Session {
 	}
 	
 	/**
-	 * Checks wether player is logged in and the session is valid.<br>
+	 * Checks whether player is logged in and the session is valid.<br>
 	 * Returns true if is logged in.<br>
 	 * Otherwise false.
 	 * @return
@@ -249,7 +249,7 @@ public class Session {
 	 * But if the session is destroyed, the reload failed<br>
 	 * or the session doesn't exist, it will return false.
 	 * 
-	 * @return true if reload was successfully. Otherwise false.<br>Then you need to generate a new session.
+	 * @return true if reload was successfully. Otherwise false.<br>If false you need to generate a new session.
 	 */
 	public boolean reload() {
 		ResultSet rs = MySQL.query("SELECT * FROM session WHERE id = '"+id+"' AND uuid = '"+this.player.getUniqueId().toString()+"'");
@@ -258,7 +258,7 @@ public class Session {
 				boolean destroyed = rs.getBoolean("destroyed");
 				InetAddress ip = InetAddress.getByName(rs.getString("ip"));
 				if(destroyed || !ip.equals(this.ip)) {
-					this.close();
+					this.close(true);
 					return false;
 				}
 				this.lastLogin = rs.getTimestamp("last_login").getTime();
@@ -271,7 +271,7 @@ public class Session {
 			} else {
 				
 			}
-		} catch (SQLException | UnknownHostException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -282,18 +282,28 @@ public class Session {
 	 * 
 	 * This session will be removed from mysql database.<br>
 	 * Also from the CachedSession list
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
-	public void close() {
+	public void close(boolean waitForClose) throws InterruptedException, ExecutionException {
 		if(this.authPlayer != null) this.authPlayer.close();
 		this.authPlayer = null;
-		MySQL.deleteSession(this);
+		Future<Object> future = MySQL.deleteSession(this);
+		
+		if(waitForClose) future.get();
 		AuthYou.getSessionManager().removeCachedSession(this);
 	}
 	
 	public void onPlayerJoin(Player p, boolean ignoreReload) {
 		this.player = p;
 		this.cache = new Cache(this);
-		if(!ignoreReload) this.reload();
+		if(!ignoreReload) {
+			if(!this.reload()) {
+				AuthYou.getSessionManager().removeCachedSession(p.getUniqueId());
+				AuthYou.getSessionManager().getNewSession(p); //TEST
+				System.out.println("new session generated");
+			}
+		}
 	}
 	
 	public void onPlayerLeave() {
