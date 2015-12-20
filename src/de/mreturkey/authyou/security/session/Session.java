@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import de.mreturkey.authyou.AuthPlayer;
@@ -42,13 +41,13 @@ public class Session {
 	 * @param destroyed
 	 * @param state
 	 */
-	protected Session(UUID uuid, String id, InetAddress ip, long lastLogin, boolean destroyed, DestroyReason destroyReason, SessionState state) {
+	protected Session(UUID uuid, String id, InetAddress ip, long lastLogin, boolean destroyed, DestroyReason destroyReason, SessionState state, Player p) {
 		this.id = id;
 		this.uuid = uuid;
 		this.ip = ip;
 		this.lastLogin = lastLogin;
 		
-		this.player = Bukkit.getPlayer(uuid);
+		this.player = p;
 		this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, player);
 		
 		this.destroyed = destroyed;
@@ -64,7 +63,7 @@ public class Session {
 	 * @param p
 	 */
 	protected Session(Player p) {
-		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.NOT_IN_USE);
+		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.NOT_IN_USE, p);
 		if(Config.getSessionsEnabled) this.update(); //Local-Work
 	}
 
@@ -155,6 +154,10 @@ public class Session {
 		if(!ap.getUniqueId().equals(uuid)) throw new IllegalArgumentException("The UUID of authPlayer does not equals with the UUID in the session");
 		this.authPlayer = ap;
 	}
+	
+	public void setPlayer(Player player) {
+		this.player = player;
+	}
 
 	/**
 	 * Checks if this session is valid.<br>
@@ -212,7 +215,7 @@ public class Session {
 	 * Otherwise false.
 	 * @return
 	 */
-	public boolean isPlayerLoggedIn(Player p) {
+	public boolean isPlayerLoggedIn() {
 		if(authPlayer != null && authPlayer.isLoggedIn() && state == SessionState.IN_USE) return true;
 		return false;
 	}
@@ -225,6 +228,12 @@ public class Session {
 		this.destroyed = false;
 		this.destroyReason = DestroyReason.NOT_DESTROYED;
 		this.update();
+		this.authPlayer.update();
+	}
+	
+	public void logout(Player p) throws InterruptedException, ExecutionException {
+		if(authPlayer == null) throw new NullPointerException("authPlayer is null or not registered");
+		this.destroy(DestroyReason.LOGOUT);
 	}
 	
 	/**
@@ -251,8 +260,9 @@ public class Session {
 	 * 
 	 * @return true if reload was successfully. Otherwise false.<br>If false you need to generate a new session.
 	 */
-	public boolean reload() {
-		ResultSet rs = MySQL.query("SELECT * FROM session WHERE id = '"+id+"' AND uuid = '"+this.player.getUniqueId().toString()+"'");
+	public boolean reload(UUID uuid, Player player) {
+		Validate.notNull(uuid, "UUID is null");
+		ResultSet rs = MySQL.query("SELECT * FROM session WHERE id = '"+id+"' AND uuid = '"+uuid.toString()+"'");
 		try {
 			if(rs.first()) {
 				boolean destroyed = rs.getBoolean("destroyed");
@@ -277,6 +287,10 @@ public class Session {
 		return false;
 	}
 	
+	public boolean reload() {
+		return reload(this.uuid, this.player);
+	}
+	
 	/**
 	 * Closes this Session.<br><br>
 	 * 
@@ -294,26 +308,4 @@ public class Session {
 		AuthYou.getSessionManager().removeCachedSession(this);
 	}
 	
-	public void onPlayerJoin(Player p, boolean ignoreReload) {
-		this.player = p;
-		this.cache = new Cache(this);
-		if(!ignoreReload) {
-			if(!this.reload()) {
-				AuthYou.getSessionManager().removeCachedSession(p.getUniqueId());
-				AuthYou.getSessionManager().getNewSession(p); //TEST
-				System.out.println("new session generated");
-			}
-		}
-	}
-	
-	public void onPlayerLeave() {
-		this.player = null;
-		this.cache.close();
-		this.cache = null;
-		if(authPlayer != null) {
-			authPlayer.setLoggedIn(false);
-			authPlayer.update();
-		}
-		this.update();
-	}
 }

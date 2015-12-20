@@ -6,7 +6,7 @@ import de.mreturkey.authyou.util.HashUtils;
 
 public class Password {
 
-	private final String passwordHash;
+	private String passwordHash;
 	
 	/**
 	 * Stores the password hash and offers utils
@@ -27,6 +27,16 @@ public class Password {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public boolean changePassword(String newPassword) {
+		try {
+			this.passwordHash = HashUtils.getHash(newPassword, HashUtils.createSalt(16));
+			return true;
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	public static Password getNewPassword(String password) {

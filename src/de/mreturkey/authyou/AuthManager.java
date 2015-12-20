@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -42,15 +43,17 @@ public final class AuthManager {
 	}
 	
 	public AuthPlayer getQueryedAuthPlayer(Session s, Player p) {
+		Validate.notNull(s, "Session is null");
+		Validate.notNull(p, "Player is null");
 		ResultSet rs = MySQL.query("SELECT * FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUsername+" = '"+s.getUniqueId().toString()+"'");
 		
 		try {
 			if(!rs.first()) return null;
 			
 			final int id = rs.getInt(Config.getSQLColumnId);
-			final UUID uuid = UUID.fromString(rs.getString(Config.getSQLColumnUsername));
-			
-			if(!uuid.equals(p.getUniqueId())) throw new IllegalArgumentException("UUID's doesnt match!");
+//			final UUID uuid = UUID.fromString(rs.getString(Config.getSQLColumnUsername));
+//			
+//			if(!uuid.equals(p.getUniqueId())) throw new IllegalArgumentException("UUID's doesnt match!");
 			
 			final Password password = new Password(rs.getString(Config.getSQLColumnPassword));
 //			final InetAddress ip = InetAddress.getByName(rs.getString(Config.getSQLColumnIp));
@@ -124,7 +127,7 @@ public final class AuthManager {
 				final long startTime = System.currentTimeMillis();
 				while(System.currentTimeMillis() < (startTime + TimeUnit.SECONDS.toMillis(Config.timeout))) {
 					if(s.getPlayer() == null || !s.getPlayer().isOnline()) return;
-					if(s.isPlayerLoggedIn(s.getPlayer())) return;
+					if(s.isPlayerLoggedIn()) return;
 					message.msg(s.getPlayer());
 					try {
 						Thread.sleep(5000);

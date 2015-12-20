@@ -3,6 +3,7 @@ package de.mreturkey.authyou.config;
 import java.io.File;
 import java.io.IOException;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
@@ -110,5 +111,9 @@ public enum Message {
 	
 	public void msg(Player p){
 		p.sendMessage(replacedMsg);
+	}
+	
+	public void msgSender(CommandSender sender) {
+		sender.sendMessage(replacedMsg);
 	}
 }

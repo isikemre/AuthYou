@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -116,7 +117,7 @@ public class MySQL {
 	}
 	
 	public static void createTables() {
-		MySQL.update("CREATE TABLE IF NOT EXISTS `session` ( `id` VARCHAR(14) NULL DEFAULT NULL COMMENT 'Session ID' , `uuid` VARCHAR(36) NULL DEFAULT NULL COMMENT 'UUID of player' , `ip` VARCHAR(15) NULL DEFAULT NULL COMMENT 'IP of player' , `last_login` TIMESTAMP NULL DEFAULT NULL COMMENT 'Timestamp of the last login' , `state` VARCHAR(50) NULL DEFAULT NULL COMMENT 'State of Session' , `destroy_reason` VARCHAR(50) NULL DEFAULT NULL COMMENT 'The Reason why this Session is destroyed, or not.' , PRIMARY KEY (`id`)) ENGINE = MyISAM;");
+		MySQL.update("CREATE TABLE IF NOT EXISTS `session` ( `id` VARCHAR(14) NULL DEFAULT NULL COMMENT 'Session ID' , `uuid` VARCHAR(36) NULL DEFAULT NULL COMMENT 'UUID of player' , `ip` VARCHAR(15) NULL DEFAULT NULL COMMENT 'IP of player' , `last_login` TIMESTAMP NULL DEFAULT NULL COMMENT 'Timestamp of the last login' , `state` VARCHAR(50) NULL DEFAULT NULL COMMENT 'State of Session' , `destroyed` BOOLEAN NOT NULL COMMENT 'Is Session destroyed?', `destroy_reason` VARCHAR(50) NULL DEFAULT NULL COMMENT 'The Reason why this Session is destroyed, or not.' , PRIMARY KEY (`id`)) ENGINE = MyISAM;");
 	}
 
 	public static void close() {
@@ -175,8 +176,22 @@ public class MySQL {
 		return bool ? 1 : 0;
 	}
 	
+	public static void changePassword(final UUID uuid, final String newPassword) {
+		AuthYou.getAuthManager().runAsync(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					Statement stmt = con.createStatement();
+					stmt.executeUpdate("UPDATE "+Config.getSQLTableName+" SET "+Config.getSQLColumnPassword+" = '"+newPassword+"' WHERE "+Config.getSQLColumnUsername+" = '"+uuid.toString()+"'");
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	
 	public static void insertSession(final Session session) {
-		System.out.println(" --- Session \""+session.getId()+"\" ("+session.getPlayer().getName()+") insert");
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
@@ -203,7 +218,6 @@ public class MySQL {
 	}
 	
 	public static void updateSession(final Session session) {
-		System.out.println(" --- Session \""+session.getId()+"\" ("+session.getPlayer().getName()+") update");
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
@@ -228,7 +242,6 @@ public class MySQL {
 	}
 	
 	public static void insertOrUpdateSession(final Session session) {
-		System.out.println(" --- Session \""+session.getId()+"\" insertOrUpdate");
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			@Override
 			public void run() {
@@ -269,7 +282,6 @@ public class MySQL {
 	}
 	
 	public static Future<Object> deleteSession(final Session session) {
-		System.out.println(" --- Session \""+session.getId()+"\" delete");
 		return AuthYou.getAuthManager().submitAsync(new Callable<Object>() {
 
 			@Override

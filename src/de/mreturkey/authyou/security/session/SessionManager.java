@@ -53,7 +53,7 @@ public final class SessionManager {
 
 			final DestroyReason destroyReason = DestroyReason.valueOf(rs.getString("destroy_reason"));
 			final SessionState state = SessionState.valueOf(rs.getString("state"));
-			return new Session(uuid, id, ip, lastLogin, destroyed, destroyReason, state);
+			return new Session(uuid, id, ip, lastLogin, destroyed, destroyReason, state, p);
 		} catch (SQLException | UnknownHostException e) {
 			e.printStackTrace();
 		}

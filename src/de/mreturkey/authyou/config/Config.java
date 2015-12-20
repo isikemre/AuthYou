@@ -68,8 +68,8 @@ public final class Config extends YamlConfiguration {
         getSQLColumnLastLocY = instance.getString("DataSource.mySQLlastlocY", "y");
         getSQLColumnLastLocZ = instance.getString("DataSource.mySQLlastlocZ", "z");
         getSQLColumnLastLocWorld = instance.getString("DataSource.mySQLlastlocWorld", "world");
-        getSQLColumnId = instance.getString("DataSource.mySQLColumnId", "world");
-        getSQLColumnLogged = instance.getString("DataSource.mySQLColumnLogged", "world");
+        getSQLColumnId = instance.getString("DataSource.mySQLColumnId", "id");
+        getSQLColumnLogged = instance.getString("DataSource.mySQLColumnLogged", "is_logged");
         
         getSessionsEnabled = instance.getBoolean("settings.sessions.enabled", true);
         final int sessionTimeout = instance.getInt("settings.sessions.timeout", 3);
@@ -109,6 +109,8 @@ public final class Config extends YamlConfiguration {
 				instance.set("DataSource.mySQLlastlocY", "y");
 				instance.set("DataSource.mySQLlastlocZ", "z");
 				instance.set("DataSource.mySQLlastlocWorld", "world");
+				instance.set("DataSource.mySQLColumnId", "id");
+		        instance.set("DataSource.mySQLColumnLogged", "is_logged");
 				
 				instance.set("settings.sessions.enabled", true);
 		        instance.set("settings.sessions.timeout", 3);

@@ -5,7 +5,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.config.Config;
+import de.mreturkey.authyou.config.Message;
 import de.mreturkey.authyou.security.session.Session;
+import de.mreturkey.authyou.security.session.cache.Cache;
 
 public class JoinHandler implements Runnable {
 
@@ -37,7 +39,10 @@ JOINED -> SESSION_CHECK ->
 				if(s == null) {
 					s = AuthYou.getSessionManager().getQueryedSession(p);
 				} else {
-					s.reload();
+					if(!s.reload(p.getUniqueId(), p)) {
+						s.close(true); //Hääähh
+						s = null;
+					}
 				}
 				
 				session = s;
@@ -51,11 +56,22 @@ JOINED -> SESSION_CHECK ->
 				session = AuthYou.getSessionManager().getNewSession(p);
 			}
 			
-			//Check is Valid
-			if(session.isValid(p)) {
-				
+			session.setPlayer(p);
+			session.setCache(new Cache(session));
+			
+			//If not registered, player need to register. And returns.
+			if(!session.isPlayerRegisterd()) {
+				AuthYou.getAuthManager().waitForAuth(Message.REG_MSG, session);
+				return;
 			}
 			
+			//Check is Valid
+			if(session.isValid(p)) {
+				Message.VALID_SESSION.msg(p);
+				session.login(p);
+			} else {
+				AuthYou.getAuthManager().waitForAuth(Message.LOGIN_MSG, session);
+			}
 			
 		} catch(Exception e) {
 			
