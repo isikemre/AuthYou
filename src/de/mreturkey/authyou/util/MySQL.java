@@ -49,8 +49,9 @@ public class MySQL {
 	    		LogUtil.consoleSenderLog("§r");
 	    	} else LogUtil.consoleSenderLog("§e[MySQL]§r §4Error: "+e.getMessage());
 	    	try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e1) {
+	    		LogUtil.consoleSenderLog("Press §cEnter §rto continue...");
+				LogUtil.waitForEnter();
+			} catch (Exception e1) {
 				e1.printStackTrace();
 			} finally {
 				if(Config.stopServerOnSQLError) Bukkit.shutdown();
@@ -307,6 +308,7 @@ public class MySQL {
 							
 							+ "("
 							+ Config.getSQLColumnUsername + ", "
+							+ Config.getSQLColumnUUID + ", "
 							+ Config.getSQLColumnPassword + ", "
 							+ Config.getSQLColumnIp + ", "
 							+ Config.getSQLColumnLastLogin + ", "
@@ -322,14 +324,15 @@ public class MySQL {
 					final Location loc = p.getLocation();
 					
 					ps.setString(1, p.getUniqueId().toString());
-					ps.setString(2, passwordHash);
-					ps.setString(3, p.getAddress().getAddress().getHostAddress());
-					ps.setLong(4, System.currentTimeMillis());
-					ps.setDouble(5, loc.getX());
-					ps.setDouble(6, loc.getY());
-					ps.setDouble(7, loc.getZ());
-					ps.setString(8, loc.getWorld().getName());
-					ps.setBoolean(9, loggedIn);
+					ps.setString(2, p.getName());
+					ps.setString(3, passwordHash);
+					ps.setString(4, p.getAddress().getAddress().getHostAddress());
+					ps.setLong(5, System.currentTimeMillis());
+					ps.setDouble(6, loc.getX());
+					ps.setDouble(7, loc.getY());
+					ps.setDouble(8, loc.getZ());
+					ps.setString(9, loc.getWorld().getName());
+					ps.setBoolean(10, loggedIn);
 					
 					ps.executeUpdate();
 					
@@ -355,6 +358,7 @@ public class MySQL {
 				try {
 					PreparedStatement ps = con.prepareStatement("UPDATE "+Config.getSQLTableName+" SET "
 							+ Config.getSQLColumnUsername + " = ?, "
+							+ Config.getSQLColumnUUID + " = ?, "
 							+ Config.getSQLColumnPassword + " = ?,"
 							+ Config.getSQLColumnIp + " = ?,"
 							+ Config.getSQLColumnLastLogin + " = ?,"
@@ -368,14 +372,15 @@ public class MySQL {
 					final Location loc = p.getLocation();
 					
 					ps.setString(1, authPlayer.getUniqueId().toString());
-					ps.setString(2, authPlayer.getPassword().getHash());
-					ps.setString(3, p.getAddress().getAddress().getHostAddress());
-					ps.setLong(4, System.currentTimeMillis());
-					ps.setDouble(5, loc.getX());
-					ps.setDouble(6, loc.getY());
-					ps.setDouble(7, loc.getZ());
-					ps.setString(8, loc.getWorld().getName());
-					ps.setBoolean(9, authPlayer.isLoggedIn());
+					ps.setString(2, authPlayer.getUsername());
+					ps.setString(3, authPlayer.getPassword().getHash());
+					ps.setString(4, p.getAddress().getAddress().getHostAddress());
+					ps.setLong(5, System.currentTimeMillis());
+					ps.setDouble(6, loc.getX());
+					ps.setDouble(7, loc.getY());
+					ps.setDouble(8, loc.getZ());
+					ps.setString(9, loc.getWorld().getName());
+					ps.setBoolean(10, authPlayer.isLoggedIn());
 					
 					ps.executeUpdate();
 					ps.close();

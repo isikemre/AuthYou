@@ -45,19 +45,15 @@ public final class AuthManager {
 	public AuthPlayer getQueryedAuthPlayer(Session s, Player p) {
 		Validate.notNull(s, "Session is null");
 		Validate.notNull(p, "Player is null");
-		ResultSet rs = MySQL.query("SELECT * FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUsername+" = '"+s.getUniqueId().toString()+"'");
+		if(!s.getUniqueId().equals(p.getUniqueId())) throw new IllegalArgumentException("user of the session doesn't equals with the given player");
+		ResultSet rs = MySQL.query("SELECT * FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUUID+" = '"+p.getUniqueId().toString()+"' OR "+Config.getSQLColumnUsername+" = '"+p.getName()+"'");
 		
 		try {
 			if(!rs.first()) return null;
 			
 			final int id = rs.getInt(Config.getSQLColumnId);
-//			final UUID uuid = UUID.fromString(rs.getString(Config.getSQLColumnUsername));
-//			
-//			if(!uuid.equals(p.getUniqueId())) throw new IllegalArgumentException("UUID's doesnt match!");
 			
 			final Password password = new Password(rs.getString(Config.getSQLColumnPassword));
-//			final InetAddress ip = InetAddress.getByName(rs.getString(Config.getSQLColumnIp));
-//			final long lastLogin = rs.getLong(Config.getSQLColumnLastLogin);
 			final Location loc = new Location(
 					Bukkit.getWorld(rs.getString(Config.getSQLColumnLastLocWorld)),
 					rs.getDouble(Config.getSQLColumnLastLocX),
@@ -89,8 +85,8 @@ public final class AuthManager {
 	public AuthPlayer registerNewAuthPlayer(Session session, Player p, String passwordHash) throws InterruptedException, ExecutionException {
 		Future<Object> future = MySQL.insertAuthPlayer(session, p, passwordHash, true);
 		try {
-			int lastId = (int) future.get(30, TimeUnit.SECONDS);
-			return new AuthPlayer(lastId, session, p, new Password(passwordHash), null, true);
+			int id = (int) future.get(30, TimeUnit.SECONDS);
+			return new AuthPlayer(id, session, p, new Password(passwordHash), null, true);
 		} catch (TimeoutException e) {
 			e.printStackTrace();
 			LogUtil.consoleSenderLog("MySQL Thread timed out.");

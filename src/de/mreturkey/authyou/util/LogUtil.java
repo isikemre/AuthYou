@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Scanner;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
@@ -12,6 +13,8 @@ import de.mreturkey.authyou.AuthYou;
 import de.mreturkey.authyou.security.session.Session;
 
 public class LogUtil {
+	
+	private static final Scanner SCANNER = new Scanner(System.in);
 	
 	public static ConsoleCommandSender getCommandSender() {
 		return Bukkit.getConsoleSender();
@@ -43,6 +46,10 @@ public class LogUtil {
 				}
 			}
 		}).start();
+	}
+	
+	public static void waitForEnter() {
+		SCANNER.nextLine();
 	}
 
 }

@@ -22,7 +22,7 @@ public final class Config extends YamlConfiguration {
 	public static YamlConfiguration instance;
 	
 	public static Database getDatabase;
-	public static String getSQLColumnUsername, getSQLTableName, getSQLColumnLastLogin,
+	public static String getSQLColumnUsername, getSQLColumnUUID, getSQLTableName, getSQLColumnLastLogin,
 		getSQLColumnIp, getSQLColumnPassword, getSQLColumnLastLocX, getSQLColumnLastLocY, getSQLColumnLastLocZ,
 		getSQLColumnLastLocWorld, getSQLColumnId, getSQLColumnLogged;
 	public static boolean getSessionsEnabled, getSessionExpireOnIpChange;
@@ -61,6 +61,7 @@ public final class Config extends YamlConfiguration {
 				instance.getString("DataSource.mySQLPassword", "pass1234"));
         getSQLTableName = instance.getString("DataSource.mySQLTablename", "authme");
         getSQLColumnUsername = instance.getString("DataSource.mySQLColumnName", "username");
+        getSQLColumnUUID = instance.getString("DataSource.mySQLColumnUUID", "uuid");
         getSQLColumnPassword = instance.getString("DataSource.mySQLColumnPassword", "password");
         getSQLColumnIp = instance.getString("DataSource.mySQLColumnIp", "ip");
         getSQLColumnLastLogin = instance.getString("DataSource.mySQLColumnLastLogin", "lastlogin");
@@ -99,6 +100,7 @@ public final class Config extends YamlConfiguration {
 				instance.set("DataSource.mySQLPort", 3306);
 				instance.set("DataSource.mySQLDatabase", "authme");
 				instance.set("DataSource.mySQLUsername", "username");
+				instance.set("DataSource.mySQLColumnUUID", "uuid");
 				instance.set("DataSource.mySQLPassword", "pass1234");
 				instance.set("DataSource.mySQLTablename", "authme");
 				instance.set("DataSource.mySQLColumnName", "username");
