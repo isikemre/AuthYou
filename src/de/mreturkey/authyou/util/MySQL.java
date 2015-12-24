@@ -7,6 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -23,6 +27,12 @@ import de.mreturkey.authyou.security.session.Session;
 
 public class MySQL {
 
+	private static final List<String> COLS = new ArrayList<>(Collections.unmodifiableList(Arrays.asList(
+			Config.getSQLColumnId, Config.getSQLColumnIp, Config.getSQLColumnLastLocWorld,
+			Config.getSQLColumnLastLocX, Config.getSQLColumnLastLocY, Config.getSQLColumnLastLocZ,
+			Config.getSQLColumnLastLogin, Config.getSQLColumnLogged, Config.getSQLColumnPassword, Config.getSQLColumnUsername,
+			Config.getSQLColumnUUID)));
+	
 	public static Connection con;
 	public static Database database = Config.getDatabase;
 
@@ -58,6 +68,10 @@ public class MySQL {
 			}
 	    }
 		return con;
+	}
+	
+	public static void cheackAuthTableIsValid2() {
+		
 	}
 	
 	public static void checkAuthTableIsValid() throws SQLException, InterruptedException, SQLTableValidException {
