@@ -106,6 +106,7 @@ public final class AuthManager {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			p.sendPluginMessage(AuthYou.getInstance(), "BungeeCord", b.toByteArray());
 		}
 		new BukkitRunnable() {
 			@Override

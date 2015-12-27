@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -56,15 +57,15 @@ public final class Config extends YamlConfiguration {
 		getDatabase = new Database(
 				instance.getString("DataSource.mySQLHost", "localhost"),
 				instance.getInt("DataSource.mySQLPort", 3306),
-				instance.getString("DataSource.mySQLDatabase", "authme"),
+				instance.getString("DataSource.mySQLDatabase", "authyou"),
 				instance.getString("DataSource.mySQLUsername", "username"),
 				instance.getString("DataSource.mySQLPassword", "pass1234"));
-        getSQLTableName = instance.getString("DataSource.mySQLTablename", "authme");
+        getSQLTableName = instance.getString("DataSource.mySQLTablename", "authyou");
         getSQLColumnUsername = instance.getString("DataSource.mySQLColumnName", "username");
         getSQLColumnUUID = instance.getString("DataSource.mySQLColumnUUID", "uuid");
         getSQLColumnPassword = instance.getString("DataSource.mySQLColumnPassword", "password");
         getSQLColumnIp = instance.getString("DataSource.mySQLColumnIp", "ip");
-        getSQLColumnLastLogin = instance.getString("DataSource.mySQLColumnLastLogin", "lastlogin");
+        getSQLColumnLastLogin = instance.getString("DataSource.mySQLColumnLastLogin", "last_login");
         getSQLColumnLastLocX = instance.getString("DataSource.mySQLlastlocX", "x");
         getSQLColumnLastLocY = instance.getString("DataSource.mySQLlastlocY", "y");
         getSQLColumnLastLocZ = instance.getString("DataSource.mySQLlastlocZ", "z");
@@ -80,7 +81,9 @@ public final class Config extends YamlConfiguration {
         
         allowChat = instance.getBoolean("settings.restrictions.allowChat", false);
         allowCommands = instance.getStringList("settings.restrictions.allowCommands");
-        
+        if(allowCommands.isEmpty()) {
+        	allowCommands = new ArrayList<>(Arrays.asList("/login", "/l", "/register", "/reg"));
+        }
         maxRegPerIp = instance.getInt("settings.restrictions.maxRegPerIp", 1);
         maxNicknameLength = instance.getInt("settings.restrictions.maxNicknameLength", 20);
         kickNonRegistered = instance.getBoolean("settings.restrictions.kickNonRegistered", false);
@@ -98,15 +101,15 @@ public final class Config extends YamlConfiguration {
 			try {
 				instance.set("DataSource.mySQLHost", "localhost");
 				instance.set("DataSource.mySQLPort", 3306);
-				instance.set("DataSource.mySQLDatabase", "authme");
+				instance.set("DataSource.mySQLDatabase", "authyou");
 				instance.set("DataSource.mySQLUsername", "username");
 				instance.set("DataSource.mySQLColumnUUID", "uuid");
 				instance.set("DataSource.mySQLPassword", "pass1234");
-				instance.set("DataSource.mySQLTablename", "authme");
+				instance.set("DataSource.mySQLTablename", "authyou");
 				instance.set("DataSource.mySQLColumnName", "username");
 				instance.set("DataSource.mySQLColumnPassword", "password");
 				instance.set("DataSource.mySQLColumnIp", "ip");
-				instance.set("DataSource.mySQLColumnLastLogin", "lastlogin");
+				instance.set("DataSource.mySQLColumnLastLogin", "last_login");
 				instance.set("DataSource.mySQLlastlocX", "x");
 				instance.set("DataSource.mySQLlastlocY", "y");
 				instance.set("DataSource.mySQLlastlocZ", "z");
@@ -121,7 +124,8 @@ public final class Config extends YamlConfiguration {
 		        instance.set("settings.sessions.sessionExpireOnIpChange", true);
 		        
 		        instance.set("settings.restrictions.allowChat", false);
-		        instance.set("settings.restrictions.allowCommands", new ArrayList<>());
+		        List<String> cmds = new ArrayList<>(Arrays.asList("/login", "/l", "/register", "/reg"));
+		        instance.set("settings.restrictions.allowCommands", cmds);
 		        
 		        instance.set("settings.restrictions.maxRegPerIp", 1);
 		        instance.set("settings.restrictions.maxNicknameLength", 20);

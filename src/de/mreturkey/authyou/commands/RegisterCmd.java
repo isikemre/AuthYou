@@ -27,7 +27,7 @@ public class RegisterCmd implements TabExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(label.equalsIgnoreCase("register")) {
+		if(label.equalsIgnoreCase("register") || label.equalsIgnoreCase("reg")) {
 			if(!(sender instanceof Player)) { LogUtil.consoleSenderLog("§4You can't execute this command as console."); return true; }
 			
 			final Player p = (Player) sender;

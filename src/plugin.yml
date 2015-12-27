@@ -8,4 +8,9 @@ commands:
     aliases: l
     description: login to the server
   register:
+    aliases: reg
     description: register to the server
+  changepassword:
+    description: change your password
+  logout:
+    description: logout from server

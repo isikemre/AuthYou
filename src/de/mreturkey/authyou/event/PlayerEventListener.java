@@ -48,8 +48,8 @@ public class PlayerEventListener implements Listener {
 		final Session s = AuthYou.getSession(e.getPlayer());
 		if(s != null) {
 			s.setPlayer(null);
-			s.getCache().close();
-			s.setCache(null);
+//			s.getCache().close();
+//			s.setCache(null);
 			if(s.getAuthPlayer() != null) {
 				s.getAuthPlayer().setLoggedIn(false);
 				s.getAuthPlayer().update();
@@ -111,7 +111,9 @@ public class PlayerEventListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onCommand(PlayerCommandPreprocessEvent e) {
-		if(e.getMessage().startsWith("/login") || e.getMessage().startsWith("/l") || e.getMessage().startsWith("/register")) return;
+		for(String allowedCmd : Config.allowCommands) {
+			if(e.getMessage().toLowerCase().startsWith(allowedCmd.toLowerCase())) return;
+		}
 		final Session s = AuthYou.getSession(e.getPlayer());
 		if(s == null || !s.isPlayerLoggedIn()) e.setCancelled(true);
 	}

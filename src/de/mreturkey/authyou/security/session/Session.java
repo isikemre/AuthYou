@@ -64,7 +64,7 @@ public class Session {
 	 */
 	protected Session(Player p) {
 		this(p.getUniqueId(), AuthYou.getSessionManager().generateId(), p.getAddress().getAddress(), System.currentTimeMillis(), false, DestroyReason.NOT_DESTROYED, SessionState.NOT_IN_USE, p);
-		if(Config.getSessionsEnabled) this.update(); //Local-Work
+		if(Config.getSessionsEnabled) this.insert(); //Local-Work
 	}
 
 	/**
@@ -253,6 +253,14 @@ public class Session {
 	}
 	
 	/**
+	 * Returns the ID which is inserted.
+	 * @return
+	 */
+	public String insert() {
+		return MySQL.insertSession(this, false);
+	}
+	
+	/**
 	 * Reload's this Session.<br><br>
 	 * Returns true if the session reloaded successful.<br>
 	 * But if the session is destroyed, the reload failed<br>
@@ -268,7 +276,7 @@ public class Session {
 				boolean destroyed = rs.getBoolean("destroyed");
 				InetAddress ip = InetAddress.getByName(rs.getString("ip"));
 				if(destroyed || !ip.equals(this.ip)) {
-					this.close(true);
+					this.close();
 					return false;
 				}
 				this.lastLogin = rs.getTimestamp("last_login").getTime();
@@ -291,6 +299,10 @@ public class Session {
 		return reload(this.uuid, this.player);
 	}
 	
+	public void loadAuthPlayer(Player player) {
+		this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, player);
+	}
+	
 	/**
 	 * Closes this Session.<br><br>
 	 * 
@@ -299,12 +311,11 @@ public class Session {
 	 * @throws ExecutionException 
 	 * @throws InterruptedException 
 	 */
-	public void close(boolean waitForClose) throws InterruptedException, ExecutionException {
+	public void close() throws InterruptedException, ExecutionException {
 		if(this.authPlayer != null) this.authPlayer.close();
 		this.authPlayer = null;
-		Future<Object> future = MySQL.deleteSession(this);
+		MySQL.deleteSession(this);
 		
-		if(waitForClose) future.get();
 		AuthYou.getSessionManager().removeCachedSession(this);
 	}
 	

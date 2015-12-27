@@ -40,7 +40,7 @@ JOINED -> SESSION_CHECK ->
 					s = AuthYou.getSessionManager().getQueryedSession(p);
 				} else {
 					if(!s.reload(p.getUniqueId(), p)) {
-						s.close(true); //Hääähh
+						s.close(); //Hääähh
 						s = null;
 					}
 				}
@@ -70,6 +70,7 @@ JOINED -> SESSION_CHECK ->
 				Message.VALID_SESSION.msg(p);
 				session.login(p);
 			} else {
+				session.loadAuthPlayer(p);
 				AuthYou.getAuthManager().waitForAuth(Message.LOGIN_MSG, session);
 			}
 			

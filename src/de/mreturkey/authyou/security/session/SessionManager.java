@@ -17,6 +17,7 @@ public final class SessionManager {
 
 	private final SessionIdentifierGenerator identifierGenerator = new SessionIdentifierGenerator();
 	private final HashMap<UUID, Session> sessions = new HashMap<>();
+	private final HashMap<String, Object> sessionIds = new HashMap<>(); //Object (value) is always NULL
 	
 	public SessionManager() {
 		// TODO Auto-generated constructor stub
@@ -88,7 +89,8 @@ public final class SessionManager {
 	 */
 	public String generateId() {
 		String id = identifierGenerator.nextSessionId();
-		while(sessions.containsKey(id)) id = identifierGenerator.nextSessionId();
+		while(sessionIds.containsKey(id)) id = identifierGenerator.nextSessionId();
+		sessionIds.put(id, null);
 		return id;
 	}
 
