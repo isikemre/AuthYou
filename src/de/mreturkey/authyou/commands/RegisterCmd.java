@@ -2,7 +2,6 @@ package de.mreturkey.authyou.commands;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -31,6 +30,12 @@ public class RegisterCmd implements TabExecutor {
 			if(!(sender instanceof Player)) { LogUtil.consoleSenderLog("§4You can't execute this command as console."); return true; }
 			
 			final Player p = (Player) sender;
+			
+			if(!Config.getRegisterEnabled) {
+				Message.REG_DISABLED.msg(p);
+				return true;
+			}
+			
 			if(args.length != 2) {
 				Message.USAGE_REG.msg(p);
 				return true;
@@ -83,7 +88,7 @@ public class RegisterCmd implements TabExecutor {
 				session.setAuthPlayer(ap);
 				session.login(p);
 				Message.LOGIN.msg(p);
-			} catch (InterruptedException | ExecutionException | NoSuchAlgorithmException e) {
+			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
 				p.sendMessage("§4Error. Please contact the admin.");
 			}

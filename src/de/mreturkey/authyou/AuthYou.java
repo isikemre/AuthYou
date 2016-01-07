@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import de.mreturkey.authyou.commands.AuthyouCmd;
 import de.mreturkey.authyou.commands.ChangepasswordCmd;
 import de.mreturkey.authyou.commands.LoginCmd;
 import de.mreturkey.authyou.commands.LogoutCmd;
@@ -51,6 +52,7 @@ public class AuthYou extends JavaPlugin {
 		this.getCommand("register").setExecutor(new RegisterCmd());
 		this.getCommand("changepassword").setExecutor(new ChangepasswordCmd());
 		this.getCommand("logout").setExecutor(new LogoutCmd());
+		this.getCommand("authyou").setExecutor(new AuthyouCmd());
 	}
 	
 	public static SessionManager getSessionManager() {
@@ -74,5 +76,13 @@ public class AuthYou extends JavaPlugin {
 		Validate.notNull(p, "player cannot be null");
 		if(!p.isOnline()) throw new IllegalArgumentException("player need to be online!");
 		return sessionManager.getCachedSession(p);
+	}
+	
+	public static Session getSession(String username) {
+		Validate.notNull(username, "username cannot be null");
+		for(Session s : sessionManager.getSessions().values()) {
+			if(s != null && s.getUsername().equalsIgnoreCase(username)) return s;
+		}
+		return null;
 	}
 }

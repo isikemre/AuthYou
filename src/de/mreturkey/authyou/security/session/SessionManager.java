@@ -34,6 +34,10 @@ public final class SessionManager {
 		return sessions.get(p.getUniqueId());
 	}
 	
+	public HashMap<UUID, Session> getSessions() {
+		return sessions;
+	}
+	
 	/**
 	 * Returns the session which is stored in mysql.<br>
 	 * If the returned object is null, the player doesn't exist in the mysql database or the session is destroyed.

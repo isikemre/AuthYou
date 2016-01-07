@@ -44,6 +44,11 @@ public class LoginCmd implements TabExecutor {
 				return true;
 			}
 			
+			if(session.isPlayerLoggedIn()) {
+				Message.LOGGED_IN.msg(p);
+				return true;
+			}
+			
 			if(session.getAuthPlayer().getPassword().compare(args[0])) {
 				session.login(p);
 				Message.LOGIN.msg(p);

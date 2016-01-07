@@ -1,19 +1,14 @@
 package de.mreturkey.authyou;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -21,13 +16,15 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+
 import de.mreturkey.authyou.config.Config;
 import de.mreturkey.authyou.config.Message;
 import de.mreturkey.authyou.security.Password;
 import de.mreturkey.authyou.security.session.Session;
 import de.mreturkey.authyou.util.KickReason;
-import de.mreturkey.authyou.util.LogUtil;
-import de.mreturkey.authyou.util.MySQL;	
+import de.mreturkey.authyou.util.MySQL;
 
 public final class AuthManager {
 
@@ -69,7 +66,7 @@ public final class AuthManager {
 	}
 	
 	public int getAmountOfRegIPs(Session s) {
-		ResultSet rs = MySQL.query("SELECT "+Config.getSQLColumnIp+" FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUsername+" = '"+s.getUniqueId().toString()+"'");
+		ResultSet rs = MySQL.query("SELECT "+Config.getSQLColumnIp+" FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUUID+" = '"+s.getUniqueId().toString()+"' OR "+Config.getSQLColumnUsername+" = '"+s.getPlayer().getName()+"'");
 		try {
 			int i = 0;
 			while(rs.next()) {
@@ -82,39 +79,66 @@ public final class AuthManager {
 		return -1;
 	}
 	
-	public AuthPlayer registerNewAuthPlayer(Session session, Player p, String passwordHash) throws InterruptedException, ExecutionException {
-		Future<Object> future = MySQL.insertAuthPlayer(session, p, passwordHash, true);
+	public boolean isPlayerRegistered(String username) {
+		ResultSet rs = MySQL.query("SELECT "+Config.getSQLColumnId+" FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUsername+" = '"+username+"'");
 		try {
-			int id = (int) future.get(30, TimeUnit.SECONDS);
-			return new AuthPlayer(id, session, p, new Password(passwordHash), null, true);
-		} catch (TimeoutException e) {
+			if(rs.first()) return true;
+		} catch (SQLException e) {
 			e.printStackTrace();
-			LogUtil.consoleSenderLog("MySQL Thread timed out.");
+		}
+		return false;
+	}
+	
+	public boolean isPlayerRegistered(UUID uuid) {
+		ResultSet rs = MySQL.query("SELECT "+Config.getSQLColumnId+" FROM "+Config.getSQLTableName+" WHERE "+Config.getSQLColumnUUID+" = '"+uuid.toString()+"'");
+		try {
+			if(rs.first()) return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public AuthPlayer registerNewAuthPlayer(Session session, Player p, String passwordHash) {
+		try {
+			Object objId = MySQL.insertAuthPlayer(session, p, passwordHash, true);
+			int id = 0;
+			if(objId instanceof Integer) id = (int) objId;
+			else throw new IllegalArgumentException("Cannot cast to Integer");
+			return new AuthPlayer(id, session, p, new Password(passwordHash), null, true);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
 	
 	public void kickPlayer(final Session s, final KickReason kickReason) {
-		final Player p = s.getPlayer();
-		if(Config.kickViaBungeeCord) {
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
-			DataOutputStream out = new DataOutputStream(b);
-			try {
-				out.writeUTF("KickPlayer");
-				out.writeUTF(p.getName());
-				out.writeUTF(kickReason.getReason());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			p.sendPluginMessage(AuthYou.getInstance(), "BungeeCord", b.toByteArray());
+		if(!Config.kickViaBungeeCord) {
+			syncKickPlayer(s.getPlayer(), kickReason.getReason());
+			return;
 		}
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				if(p == null || p.isOnline())
-					p.kickPlayer(kickReason.getReason());
+				final Player p = s.getPlayer();
+				if(Config.kickViaBungeeCord) {
+					ByteArrayDataOutput out = ByteStreams.newDataOutput();
+					out.writeUTF("KickPlayer");
+					out.writeUTF(p.getName());
+					out.writeUTF(kickReason.getReason());
+					p.sendPluginMessage(AuthYou.getInstance(), "BungeeCord", out.toByteArray());
+				}
 			}
-		}.runTaskLater(AuthYou.getInstance(), 60);
+		}.runTaskLater(AuthYou.getInstance(), 10);
+	}
+	
+	private void syncKickPlayer(final Player p, final String msg) {
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				p.kickPlayer(msg);
+			}
+		}.runTaskLater(AuthYou.getInstance(), 10);
 	}
 	
 	public void waitForAuth(final Message message, final Session s) {

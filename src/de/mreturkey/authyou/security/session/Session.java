@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
@@ -22,6 +21,8 @@ public class Session {
 	private final UUID uuid;
 	private final InetAddress ip;
 	private long lastLogin;
+	
+	private final String username;
 	
 	private AuthPlayer authPlayer;
 	private Player player;
@@ -49,6 +50,7 @@ public class Session {
 		
 		this.player = p;
 		this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, player);
+		this.username = p.getName();
 		
 		this.destroyed = destroyed;
 		this.destroyReason = destroyReason;
@@ -131,6 +133,10 @@ public class Session {
 	 */
 	public DestroyReason getDestroyReason() {
 		return destroyReason;
+	}
+	
+	public String getUsername() {
+		return username;
 	}
 
 	/**
@@ -249,7 +255,8 @@ public class Session {
 	}
 	
 	public void update() {
-		MySQL.insertOrUpdateSession(this);
+		if(Config.getSessionsEnabled)
+			MySQL.insertOrUpdateSession(this);
 	}
 	
 	/**
@@ -257,7 +264,8 @@ public class Session {
 	 * @return
 	 */
 	public String insert() {
-		return MySQL.insertSession(this, false);
+		if(Config.getSessionsEnabled) return this.id;
+		return MySQL.insertSessionAndGetID(this);
 	}
 	
 	/**
@@ -270,6 +278,10 @@ public class Session {
 	 */
 	public boolean reload(UUID uuid, Player player) {
 		Validate.notNull(uuid, "UUID is null");
+		if(!Config.getSessionsEnabled) {
+			this.authPlayer = AuthYou.getAuthManager().getQueryedAuthPlayer(this, player);
+			return true;
+		}
 		ResultSet rs = MySQL.query("SELECT * FROM session WHERE id = '"+id+"' AND uuid = '"+uuid.toString()+"'");
 		try {
 			if(rs.first()) {
@@ -314,7 +326,7 @@ public class Session {
 	public void close() throws InterruptedException, ExecutionException {
 		if(this.authPlayer != null) this.authPlayer.close();
 		this.authPlayer = null;
-		MySQL.deleteSession(this);
+		if(Config.getSessionsEnabled) MySQL.deleteSession(this);
 		
 		AuthYou.getSessionManager().removeCachedSession(this);
 	}

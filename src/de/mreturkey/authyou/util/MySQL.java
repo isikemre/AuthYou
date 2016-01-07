@@ -10,7 +10,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -131,7 +130,7 @@ public class MySQL {
 	}
 	
 	public static void createTables() {
-		MySQL.update("CREATE TABLE IF NOT EXISTS `session` ( `id` VARCHAR(14) NOT NULL COMMENT 'Session ID' , `uuid` VARCHAR(36) NULL DEFAULT NULL COMMENT 'UUID of player' , `ip` VARCHAR(15) NULL DEFAULT NULL COMMENT 'IP of player' , `last_login` TIMESTAMP NULL DEFAULT NULL COMMENT 'Timestamp of the last login' , `state` VARCHAR(50) NULL DEFAULT NULL COMMENT 'State of Session' , `destroyed` BOOLEAN NOT NULL COMMENT 'Is Session destroyed?', `destroy_reason` VARCHAR(50) NULL DEFAULT NULL COMMENT 'The Reason why this Session is destroyed, or not.' , PRIMARY KEY (`id`)) ENGINE = MyISAM;");
+		MySQL.update("CREATE TABLE IF NOT EXISTS `session` ( `id` VARCHAR(14) NOT NULL COMMENT 'Session ID' , `username` VARCHAR(255) NOT NULL COMMENT 'Username of player', `uuid` VARCHAR(36) NOT NULL COMMENT 'UUID of player', `ip` VARCHAR(15) NULL DEFAULT NULL COMMENT 'IP of player' , `last_login` TIMESTAMP NULL DEFAULT NULL COMMENT 'Timestamp of the last login' , `state` VARCHAR(50) NULL DEFAULT NULL COMMENT 'State of Session' , `destroyed` BOOLEAN NOT NULL COMMENT 'Is Session destroyed?', `destroy_reason` VARCHAR(50) NULL DEFAULT NULL COMMENT 'The Reason why this Session is destroyed, or not.' , PRIMARY KEY (`id`), UNIQUE `uuid` (`uuid`), UNIQUE `username` (`username`)) ENGINE = MyISAM;");
 		MySQL.update("CREATE TABLE IF NOT EXISTS `"+Config.getSQLTableName+"` ( `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The Registration ID' , `username` VARCHAR(255) NOT NULL COMMENT 'Username of the player' , `uuid` VARCHAR(36) NOT NULL COMMENT 'UUID of the player' , `password` VARCHAR(255) NOT NULL COMMENT 'Password-Hash of this registration' , `ip` VARCHAR(40) NOT NULL COMMENT 'Last IP of the player' , `last_login` BIGINT(20) NULL DEFAULT NULL COMMENT 'The Last Login of the player in Milliseconds' , `x` DOUBLE NOT NULL DEFAULT '0' COMMENT 'X Coord of player''s last location' , `y` DOUBLE NOT NULL DEFAULT '0' COMMENT 'Y Coord of player''s last location' , `z` DOUBLE NOT NULL DEFAULT '0' COMMENT 'Z Coord of player''s last location' , `world` VARCHAR(255) NULL DEFAULT 'world' COMMENT 'World-Name of player''s last location' , `is_logged` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is player logged in?' , PRIMARY KEY (`id`), UNIQUE (`uuid`)) ENGINE = MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
 	}
 
@@ -188,19 +187,30 @@ public class MySQL {
 		return bool ? 1 : 0;
 	}
 	
-	public static void changePassword(final UUID uuid, final String newPassword) {
+	public static void changePasswordAsync(final UUID uuid, final String newPasswordHash) {
 		AuthYou.getAuthManager().runAsync(new Runnable() {
 			
 			@Override
 			public void run() {
 				try {
 					Statement stmt = con.createStatement();
-					stmt.executeUpdate("UPDATE "+Config.getSQLTableName+" SET "+Config.getSQLColumnPassword+" = '"+newPassword+"' WHERE "+Config.getSQLColumnUsername+" = '"+uuid.toString()+"'");
+					stmt.executeUpdate("UPDATE "+Config.getSQLTableName+" SET "+Config.getSQLColumnPassword+" = '"+newPasswordHash+"' WHERE "+Config.getSQLColumnUUID+" = '"+uuid.toString()+"'");
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
 		});
+	}
+	
+	public static boolean adminChangePassword(String username, String newPasswordHash) {
+		try {
+			Statement stmt = con.createStatement();
+			stmt.executeUpdate("UPDATE "+Config.getSQLTableName+" SET "+Config.getSQLColumnPassword+" = '"+newPasswordHash+"' WHERE "+Config.getSQLColumnUsername+" = '"+username+"'");
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	public static void insertSession(final Session session) {
@@ -213,16 +223,17 @@ public class MySQL {
 			public void run() {
 				try {
 					PreparedStatement ps = con.prepareStatement("INSERT INTO session "
-							+ "(id, uuid, ip, last_login, state, destroyed, destroy_reason) VALUES "
+							+ "(id, username, uuid, ip, last_login, state, destroyed, destroy_reason) VALUES "
 							+ "(?,?,?,?,?,?,?)");
 					
 					ps.setString(1, session.getId());
-					ps.setString(2, session.getUniqueId().toString());
-					ps.setString(3, session.getIp().getHostAddress());
-					ps.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
-					ps.setString(5, session.getState().toString());
-					ps.setBoolean(6, session.isDestroyed());
-					ps.setString(7, session.getDestroyReason().toString());
+					ps.setString(2, session.getUsername());
+					ps.setString(3, session.getUniqueId().toString());
+					ps.setString(4, session.getIp().getHostAddress());
+					ps.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+					ps.setString(6, session.getState().toString());
+					ps.setBoolean(7, session.isDestroyed());
+					ps.setString(8, session.getDestroyReason().toString());
 					
 					ps.executeUpdate();
 					ps.close();
@@ -239,16 +250,17 @@ public class MySQL {
 		String id = session.getId();
 		try {
 			PreparedStatement ps = con.prepareStatement("INSERT INTO session "
-					+ "(id, uuid, ip, last_login, state, destroyed, destroy_reason) VALUES "
+					+ "(id, username, uuid, ip, last_login, state, destroyed, destroy_reason) VALUES "
 					+ "(?,?,?,?,?,?,?)");
 			
 			ps.setString(1, id);
-			ps.setString(2, session.getUniqueId().toString());
-			ps.setString(3, session.getIp().getHostAddress());
-			ps.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
-			ps.setString(5, session.getState().toString());
-			ps.setBoolean(6, session.isDestroyed());
-			ps.setString(7, session.getDestroyReason().toString());
+			ps.setString(2, session.getUsername());
+			ps.setString(3, session.getUniqueId().toString());
+			ps.setString(4, session.getIp().getHostAddress());
+			ps.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+			ps.setString(6, session.getState().toString());
+			ps.setBoolean(7, session.isDestroyed());
+			ps.setString(8, session.getDestroyReason().toString());
 			
 			ps.executeUpdate();
 			ps.close();
@@ -305,9 +317,9 @@ public class MySQL {
 			public void run() {
 				try {
 					PreparedStatement ps = con.prepareStatement("INSERT INTO session "
-							+ "(id, uuid, ip, last_login, state, destroyed, destroy_reason) VALUES "
-							+ "(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-							+ "uuid = ?, ip = ?, last_login = ?, state = ?, destroyed = ?, destroy_reason = ?");
+							+ "(id, username, uuid, ip, last_login, state, destroyed, destroy_reason) VALUES "
+							+ "(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+							+ "username = ?, uuid = ?, ip = ?, last_login = ?, state = ?, destroyed = ?, destroy_reason = ?");
 					
 					final Timestamp timestamp = new Timestamp(session.getLastLogin());
 					final String uuid = session.getUniqueId().toString();
@@ -316,19 +328,21 @@ public class MySQL {
 					final String destroyReason = session.getDestroyReason().toString();
 					
 					ps.setString(1, session.getId());
-					ps.setString(2, uuid);
-					ps.setString(3, ip);
-					ps.setTimestamp(4, timestamp);
-					ps.setString(5, state);
-					ps.setBoolean(6, session.isDestroyed());
-					ps.setString(7, destroyReason);
+					ps.setString(2, session.getUsername());
+					ps.setString(3, uuid);
+					ps.setString(4, ip);
+					ps.setTimestamp(5, timestamp);
+					ps.setString(6, state);
+					ps.setBoolean(7, session.isDestroyed());
+					ps.setString(8, destroyReason);
 					
-					ps.setString(8, uuid);
-					ps.setString(9, ip);
-					ps.setTimestamp(10, timestamp);
-					ps.setString(11, state);
-					ps.setBoolean(12, session.isDestroyed());
-					ps.setString(13, destroyReason);
+					ps.setString(9, session.getUsername());
+					ps.setString(10, uuid);
+					ps.setString(11, ip);
+					ps.setTimestamp(12, timestamp);
+					ps.setString(13, state);
+					ps.setBoolean(14, session.isDestroyed());
+					ps.setString(15, destroyReason);
 					
 					ps.executeUpdate();
 					ps.close();
@@ -393,8 +407,8 @@ public class MySQL {
 					
 					final Location loc = p.getLocation();
 					
-					ps.setString(1, p.getUniqueId().toString());
-					ps.setString(2, p.getName());
+					ps.setString(1, p.getName());
+					ps.setString(2, p.getUniqueId().toString());
 					ps.setString(3, passwordHash);
 					ps.setString(4, p.getAddress().getAddress().getHostAddress());
 					ps.setLong(5, System.currentTimeMillis());
@@ -418,7 +432,7 @@ public class MySQL {
 				return -1;
 			}
 		};
-		if(async) return AuthYou.getAuthManager().submitAsync(c);
+		if(async) return AuthYou.getAuthManager().submitAsync(c).get();
 		else return c.call();
 	}
 	

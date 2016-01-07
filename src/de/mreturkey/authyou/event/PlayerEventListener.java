@@ -29,6 +29,12 @@ public class PlayerEventListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPreLoignAsync(AsyncPlayerPreLoginEvent e){
+		if(Config.kickNonRegistered) {
+			if(!AuthYou.getAuthManager().isPlayerRegistered(e.getUniqueId())) {
+				e.disallow(Result.KICK_OTHER, Message.REG_ONLY.getMessage(true));
+				return;
+			}
+		}
 		if(e.getName().length() < Config.minNicknameLength || e.getName().length() >= Config.maxNicknameLength) {
 			e.disallow(Result.KICK_OTHER, Message.NAME_LEN.getMessage(true));
 		}

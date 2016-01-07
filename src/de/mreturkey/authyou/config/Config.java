@@ -19,14 +19,14 @@ import de.mreturkey.authyou.AuthYou;
 
 public final class Config extends YamlConfiguration {
 
-	public static File configFile;
-	public static YamlConfiguration instance;
+	public final File configFile;
+	public final YamlConfiguration instance;
 	
 	public static Database getDatabase;
 	public static String getSQLColumnUsername, getSQLColumnUUID, getSQLTableName, getSQLColumnLastLogin,
 		getSQLColumnIp, getSQLColumnPassword, getSQLColumnLastLocX, getSQLColumnLastLocY, getSQLColumnLastLocZ,
 		getSQLColumnLastLocWorld, getSQLColumnId, getSQLColumnLogged;
-	public static boolean getSessionsEnabled, getSessionExpireOnIpChange;
+	public static boolean getSessionsEnabled, getRegisterEnabled, getSessionExpireOnIpChange;
 	public static Date getSessionTimeOut;
 	public static boolean allowChat, kickNonRegistered, kickOnWrongPassword, kickViaBungeeCord, allowMovement, stopServerOnSQLError;
 	public static List<String> allowCommands;
@@ -53,7 +53,16 @@ public final class Config extends YamlConfiguration {
         }
 	}
 	
-	public static void loadConfig() {
+	public void reload() {
+		try {
+			this.load(configFile);
+			this.loadConfig();
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void loadConfig() {
 		getDatabase = new Database(
 				instance.getString("DataSource.mySQLHost", "localhost"),
 				instance.getInt("DataSource.mySQLPort", 3306),
@@ -94,6 +103,9 @@ public final class Config extends YamlConfiguration {
         timeout = instance.getInt("settings.restrictions.timeout", 30);
         allowedNicknameCharacters = Pattern.compile(instance.getString("settings.restrictions.allowedNicknameCharacters", "[a-zA-Z0-9_]*"));
         allowedPasswordCharacters = Pattern.compile(instance.getString("settings.restrictions.allowedPasswordCharacters", "[\\x21-\\x7E]*"));
+        
+        getRegisterEnabled = instance.getBoolean("settings.registration.enabled", true);
+        
         minPasswordLength = instance.getInt("settings.security.minPasswordLength", 4);
         
         stopServerOnSQLError = instance.getBoolean("Security.SQLProblem.stopServer", true);
@@ -137,6 +149,7 @@ public final class Config extends YamlConfiguration {
 		        instance.set("settings.restrictions.timeout", 30);
 		        instance.set("settings.restrictions.allowedNicknameCharacters", "[a-zA-Z0-9_]*");
 		        instance.set("settings.restrictions.allowedPasswordCharacters", "[\\x21-\\x7E]*");
+		        instance.set("settings.registration.enabled", true);
 		        instance.set("settings.security.minPasswordLength", 4);
 		        
 		        instance.set("Security.SQLProblem.stopServer", true);

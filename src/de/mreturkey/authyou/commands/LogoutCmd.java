@@ -46,6 +46,7 @@ public class LogoutCmd implements TabExecutor {
 			
 			try {
 				session.logout(p);
+				Message.LOGOUT.msg(p);
 				AuthYou.getAuthManager().kickPlayer(session, KickReason.LOGOUT);
 			} catch(Exception e) {
 				e.printStackTrace();

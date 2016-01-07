@@ -2,7 +2,10 @@ package de.mreturkey.authyou.security;
 
 import java.security.NoSuchAlgorithmException;
 
+import org.bukkit.entity.Player;
+
 import de.mreturkey.authyou.util.HashUtils;
+import de.mreturkey.authyou.util.MySQL;
 
 public class Password {
 
@@ -39,9 +42,26 @@ public class Password {
 		return false;
 	}
 	
+	public void setPasswordHash(String newPasswordHash) {
+		this.passwordHash = newPasswordHash;
+	}
+	
+	public void update(Player p) {
+		MySQL.changePasswordAsync(p.getUniqueId(), this.passwordHash);
+	}
+	
 	public static Password getNewPassword(String password) {
 		try {
 			return new Password(HashUtils.getHash(password, HashUtils.createSalt(16)));
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static String getNewPasswordOnlyHash(String password) {
+		try {
+			return HashUtils.getHash(password, HashUtils.createSalt(16));
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			return null;

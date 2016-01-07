@@ -75,6 +75,8 @@ public class ChangepasswordCmd implements TabExecutor {
 			}
 			
 			if(!session.getAuthPlayer().getPassword().changePassword(args[0])) throw new IllegalArgumentException("Error while changing password");
+			session.getAuthPlayer().getPassword().update(p);
+			Message.PWD_CHANGED.msg(p);
 			return true;
 		}
 		return false;

@@ -1,5 +1,5 @@
 name: AuthYou
-version: 1.0
+version: 1.2
 main: de.mreturkey.authyou.AuthYou
 author: mReTurkey
 description: AuthYou - A lightweight and performance-friendly plugin for the authentification
@@ -7,10 +7,17 @@ commands:
   login:
     aliases: l
     description: login to the server
+    permission: authyou.player.login
   register:
     aliases: reg
     description: register to the server
+    permission: authyou.player.register
   changepassword:
     description: change your password
+    permission: authyou.player.changepassword
   logout:
     description: logout from server
+    permission: authyou.player.logout
+  authyou:
+    description: Admin-Commands
+    permission: authyou.admin

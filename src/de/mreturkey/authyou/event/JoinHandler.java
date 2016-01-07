@@ -40,7 +40,7 @@ JOINED -> SESSION_CHECK ->
 					s = AuthYou.getSessionManager().getQueryedSession(p);
 				} else {
 					if(!s.reload(p.getUniqueId(), p)) {
-						s.close(); //H‰‰‰hh
+						s.close();
 						s = null;
 					}
 				}

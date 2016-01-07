@@ -37,7 +37,9 @@ public enum Message {
 	REGEX,
 	PASS_LEN,
 	NAME_LEN,
-	PASSWORD_ERROR_UNSAFE;
+	PASSWORD_ERROR_UNSAFE,
+	RELOAD,
+	REG_ONLY;
 	
 	private static File messageFile;
 	private static YamlConfiguration yaml;
@@ -74,6 +76,8 @@ public enum Message {
 			yaml.set("pass_len", "&cYour password didn't reach the minimum length or exceeded the max length");
 			yaml.set("name_len", "&cYour nickname is either too short or too long");
 			yaml.set("password_error_unsafe", "&cThe chosen password is not safe, please choose another one");
+			yaml.set("reload", "Configuration and database has been reloaded");
+			yaml.set("reg_only", "Registered players only! Please visit http://example.com to register");
 			
 			try {
 				yaml.save(messageFile);
