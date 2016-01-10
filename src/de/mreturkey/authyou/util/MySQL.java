@@ -78,52 +78,52 @@ public class MySQL {
 		if(!rs.getString(2).substring(0, 3).equalsIgnoreCase("int")) throw new SQLTableValidException("The ID Column is not a Integer type");
 		if(!rs.getString(6).equalsIgnoreCase("auto_increment")) throw new SQLTableValidException("The ID Column is not auto increment");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnUsername)  == null ? 100000 : cols.get(Config.getSQLColumnUsername))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Username Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnUsername)  == null ? 100000 : cols.get(Config.getSQLColumnUsername))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Username Column!\nPlease create a new column \""+Config.getSQLColumnUsername+"\" with VARCHAR(255) or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnUsername)) throw new SQLTableValidException("The Username Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnUsername+")");
 		if(!rs.getString(2).equalsIgnoreCase("varchar(255)")) throw new SQLTableValidException("The Username Column Type is not VARCHAR(255)");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnUUID)  == null ? 100000 : cols.get(Config.getSQLColumnUUID))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Username Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnUUID)  == null ? 100000 : cols.get(Config.getSQLColumnUUID))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Username Column!\nPlease create a new column \""+Config.getSQLColumnUUID+"\" with VARCHAR(36) or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnUUID)) throw new SQLTableValidException("The UUID Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnUUID+")");
 		if(!rs.getString(2).equalsIgnoreCase("varchar(36)")) throw new SQLTableValidException("The UUID Column Type is not VARCHAR(36)");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnPassword)  == null ? 100000 : cols.get(Config.getSQLColumnPassword))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Password Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnPassword)  == null ? 100000 : cols.get(Config.getSQLColumnPassword))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Password Column!\nPlease create a new column \""+Config.getSQLColumnPassword+"\" with VARCHAR(255) or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnPassword)) throw new SQLTableValidException("The Password Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnPassword+")");
 		if(!rs.getString(2).equalsIgnoreCase("varchar(255)")) throw new SQLTableValidException("The Password Column Type is not VARCHAR(255)");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnIp)  == null ? 100000 : cols.get(Config.getSQLColumnIp))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no IP Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnIp)  == null ? 100000 : cols.get(Config.getSQLColumnIp))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no IP Column!\nPlease create a new column \""+Config.getSQLColumnIp+"\" with VARCHAR(40) or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnIp)) throw new SQLTableValidException("The IP Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnIp+")");
 		if(!rs.getString(2).equalsIgnoreCase("varchar(40)")) throw new SQLTableValidException("The IP Column Type is not VARCHAR(40)");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnLastLogin) == null ? 100000 : cols.get(Config.getSQLColumnLastLogin))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no LastLogin Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnLastLogin) == null ? 100000 : cols.get(Config.getSQLColumnLastLogin))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no LastLogin Column!\nPlease create a new column \""+Config.getSQLColumnLastLogin+"\" with BIGINT(20) or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnLastLogin)) throw new SQLTableValidException("The LastLogin Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnLastLogin+")");
 		if(!rs.getString(2).equalsIgnoreCase("bigint(20)")) throw new SQLTableValidException("The LastLogin Column Type is not BIGINT(20)");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocX)  == null ? 100000 : cols.get(Config.getSQLColumnLastLocX))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no X Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocX)  == null ? 100000 : cols.get(Config.getSQLColumnLastLocX))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no X Column!\nPlease create a new column \""+Config.getSQLColumnLastLocX+"\" with DOUBLE or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnLastLocX)) throw new SQLTableValidException("The X Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnLastLocX+")");
 		if(!rs.getString(2).equalsIgnoreCase("double")) throw new SQLTableValidException("The X Column Type is not DOUBLE");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocY)  == null ? 100000 : cols.get(Config.getSQLColumnLastLocY))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Y Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocY)  == null ? 100000 : cols.get(Config.getSQLColumnLastLocY))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Y Column!\nPlease create a new column \""+Config.getSQLColumnLastLocY+"\" with DOUBLE or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnLastLocY)) throw new SQLTableValidException("The Y Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnLastLocY+")");
 		if(!rs.getString(2).equalsIgnoreCase("double")) throw new SQLTableValidException("The X Column Type is not DOUBLE");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocZ) == null ? 100000 : cols.get(Config.getSQLColumnLastLocZ))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Z Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocZ) == null ? 100000 : cols.get(Config.getSQLColumnLastLocZ))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no Z Column!\nPlease create a new column \""+Config.getSQLColumnLastLocY+"\" with DOUBLE or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnLastLocZ)) throw new SQLTableValidException("The Z Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnLastLocZ+")");
 		if(!rs.getString(2).equalsIgnoreCase("double")) throw new SQLTableValidException("The X Column Type is not DOUBLE");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocWorld)  == null ? 100000 : cols.get(Config.getSQLColumnLastLocWorld))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no World Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnLastLocWorld)  == null ? 100000 : cols.get(Config.getSQLColumnLastLocWorld))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no World Column!\nPlease create a new column \""+Config.getSQLColumnLastLocWorld+"\" with VARCHAR(255) or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnLastLocWorld)) throw new SQLTableValidException("The World Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnLastLocWorld+")");
 		if(!rs.getString(2).equalsIgnoreCase("varchar(255)")) throw new SQLTableValidException("The World Column Type is not VARCHAR(255)");
 		
-		if(!rs.absolute(cols.get(Config.getSQLColumnLogged)  == null ? 100000 : cols.get(Config.getSQLColumnLogged))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no isLogged Column!");
+		if(!rs.absolute(cols.get(Config.getSQLColumnLogged)  == null ? 100000 : cols.get(Config.getSQLColumnLogged))) throw new SQLTableValidException("MySQL Table \""+Config.getSQLTableName+"\" has no isLogged Column!\nPlease create a new column \""+Config.getSQLColumnLogged+"\" with TINYINT(1) or BOOLEAN or change the the column-name in the config.yml");
 		
 		if(!rs.getString(1).equalsIgnoreCase(Config.getSQLColumnLogged)) throw new SQLTableValidException("The isLogged Column-Name not equals with the name in the config.yml ("+rs.getString(1)+" != "+Config.getSQLColumnLogged+")");
 		if(!rs.getString(2).equalsIgnoreCase("tinyint(1)")) throw new SQLTableValidException("The isLogged Column Type is not TINYINT(1) or BOOLEAN");
@@ -131,7 +131,7 @@ public class MySQL {
 	
 	public static void createTables() {
 		MySQL.update("CREATE TABLE IF NOT EXISTS `session` ( `id` VARCHAR(14) NOT NULL COMMENT 'Session ID' , `username` VARCHAR(255) NOT NULL COMMENT 'Username of player', `uuid` VARCHAR(36) NOT NULL COMMENT 'UUID of player', `ip` VARCHAR(15) NULL DEFAULT NULL COMMENT 'IP of player' , `last_login` TIMESTAMP NULL DEFAULT NULL COMMENT 'Timestamp of the last login' , `state` VARCHAR(50) NULL DEFAULT NULL COMMENT 'State of Session' , `destroyed` BOOLEAN NOT NULL COMMENT 'Is Session destroyed?', `destroy_reason` VARCHAR(50) NULL DEFAULT NULL COMMENT 'The Reason why this Session is destroyed, or not.' , PRIMARY KEY (`id`), UNIQUE `uuid` (`uuid`), UNIQUE `username` (`username`)) ENGINE = MyISAM;");
-		MySQL.update("CREATE TABLE IF NOT EXISTS `"+Config.getSQLTableName+"` ( `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The Registration ID' , `username` VARCHAR(255) NOT NULL COMMENT 'Username of the player' , `uuid` VARCHAR(36) NOT NULL COMMENT 'UUID of the player' , `password` VARCHAR(255) NOT NULL COMMENT 'Password-Hash of this registration' , `ip` VARCHAR(40) NOT NULL COMMENT 'Last IP of the player' , `last_login` BIGINT(20) NULL DEFAULT NULL COMMENT 'The Last Login of the player in Milliseconds' , `x` DOUBLE NOT NULL DEFAULT '0' COMMENT 'X Coord of player''s last location' , `y` DOUBLE NOT NULL DEFAULT '0' COMMENT 'Y Coord of player''s last location' , `z` DOUBLE NOT NULL DEFAULT '0' COMMENT 'Z Coord of player''s last location' , `world` VARCHAR(255) NULL DEFAULT 'world' COMMENT 'World-Name of player''s last location' , `is_logged` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is player logged in?' , PRIMARY KEY (`id`), UNIQUE (`uuid`)) ENGINE = MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		MySQL.update("CREATE TABLE IF NOT EXISTS `"+Config.getSQLTableName+"` ( `"+Config.getSQLColumnId+"` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The Registration ID' , `"+Config.getSQLColumnUsername+"` VARCHAR(255) NOT NULL COMMENT 'Username of the player' , `"+Config.getSQLColumnUUID+"` VARCHAR(36) NOT NULL COMMENT 'UUID of the player' , `"+Config.getSQLColumnPassword+"` VARCHAR(255) NOT NULL COMMENT 'Password-Hash of this registration' , `"+Config.getSQLColumnIp+"` VARCHAR(40) NOT NULL COMMENT 'Last IP of the player' , `"+Config.getSQLColumnLastLogin+"` BIGINT(20) NULL DEFAULT NULL COMMENT 'The Last Login of the player' , `"+Config.getSQLColumnLastLocX+"` DOUBLE NOT NULL DEFAULT '0' COMMENT 'X Coord of player''s last location' , `"+Config.getSQLColumnLastLocY+"` DOUBLE NOT NULL DEFAULT '0' COMMENT 'Y Coord of player''s last location' , `"+Config.getSQLColumnLastLocZ+"` DOUBLE NOT NULL DEFAULT '0' COMMENT 'Z Coord of player''s last location' , `"+Config.getSQLColumnLastLocWorld+"` VARCHAR(255) NULL DEFAULT 'world' COMMENT 'World-Name of player''s last location' , `"+Config.getSQLColumnLogged+"` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is player logged in?' , PRIMARY KEY (`"+Config.getSQLColumnId+"`), UNIQUE (`"+Config.getSQLColumnUUID+"`), UNIQUE (`"+Config.getSQLColumnUsername+"`)) ENGINE = MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
 	}
 
 	public static void close() {

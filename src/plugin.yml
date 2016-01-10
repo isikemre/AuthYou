@@ -1,5 +1,5 @@
 name: AuthYou
-version: 1.2
+version: 1.2.1
 main: de.mreturkey.authyou.AuthYou
 author: mReTurkey
 description: AuthYou - A lightweight and performance-friendly plugin for the authentification
